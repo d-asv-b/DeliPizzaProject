@@ -1,0 +1,101 @@
+from django.db import models
+
+
+class User(models.Model):
+    """
+    Поля класса
+        id
+        name                имя пользователя
+        email               эл. почта пользователя
+        phone_number        номер телефона пользователя
+        pwd_hash            хэш пароля (argon2)
+        pwd_salt            соль для хэширования пароля
+        birthday_date       дата дня рождения пользователя
+        registration_date   дата регистрации
+    """
+    id = models.CharField(max_length=22, primary_key=True)
+    name = models.CharField(max_length=20)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=10)
+    pwd_hash = models.BinaryField(max_length=256)
+    pwd_salt = models.BinaryField(max_length=128)
+    birthday_date = models.DateField()
+    registration_date = models.DateField()
+
+
+class Ingredient(models.Model):
+    """
+    Поля класса
+        name                название ингредиента
+        icon                имя файла иконки ингредиента
+        price               добавочная цена ингредиента
+    """
+    name = models.CharField(max_length=20)
+    icon = models.CharField(max_length=128)
+    price = models.IntegerField()
+
+
+class Pizza(models.Model):
+    """
+    Поля класса
+        name                название пиццы
+        description         описание пиццы
+        base_price          базовая цена пиццы (без добавочных ингредиентов)
+    """
+    name = models.CharField(max_length=20)
+    description = models.CharField(max_length=500)
+    base_price = models.IntegerField()
+    ingredients = models.ManyToManyField(Ingredient, through="PizzaIngredient")
+    #calories = models.IntegerField() ???
+
+
+class PizzaIngredient(models.Model):
+    """
+    Поля класса
+        pizza               к какой пицце относится
+        ingredient          какой ингредиент
+        is_additional       является ли дополнительным ингредиентом
+    """
+    pizza = models.ForeignKey(Pizza, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    is_additional = models.BooleanField()
+
+
+class Session(models.Model):
+    pass
+
+
+class Order(models.Model):
+    """
+    Поля класса
+        id
+        customer            пользователь, создавший заказ
+        is_paid             оплачен ли заказ
+        is_completed        доставлен ли заказ
+        creation_date       дата создания заказа
+    """
+    id = models.CharField(max_length=22, primary_key=True)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_paid = models.BooleanField()
+    is_completed = models.BooleanField()
+    creation_date = models.DateField()
+
+
+class OrderItem(models.Model):
+    """
+    Поля класса
+        order               к какому заказу относится
+        pizza               какая пицца
+    """
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    pizza = models.ForeignKey(Pizza, on_delete=models.PROTECT)
+
+
+class OrderItemIngredient(models.Model):
+    """
+    Поля класса
+        order_item          к какой заказанной пицце относится
+        ingredient          какой ингредиент
+    """
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)

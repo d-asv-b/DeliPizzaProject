@@ -1,4 +1,9 @@
 /frontend/node_modules
-/backend/.venv
 
-.env
+/backend/.venv
+/backend/db.sqlite3
+/backend/api/migrations
+
+**/__pycache__
+
+**/.env
