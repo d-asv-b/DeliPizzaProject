@@ -1,5 +1,4 @@
-export default function App() {
-
+export default function Main() {
     return (
         <>
         </>
