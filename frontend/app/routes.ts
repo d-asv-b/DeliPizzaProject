@@ -5,12 +5,12 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-    index("routes/main.tsx"),
+    index("routes/Main.tsx"),
 
     route("signup", "routes/signUp.tsx"),
-    route("signin", "routes/signUp.tsx"),
-    route("account", "route/accountSettings.tsx"),
+    route("signin", "routes/signIn.tsx"),
+    route("account", "routes/accountSettings.tsx"),
 
-    route("cart", "route/cart.tsx"),
+    route("cart", "routes/cart.tsx"),
 
 ] satisfies RouteConfig;

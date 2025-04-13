@@ -1,1 +1,72 @@
 @import "tailwindcss";
+
+@font-face {
+    font-family: "CaveatBrush";
+    src: url("/fonts/CaveatBrush-Regular.ttf") format('truetype');
+}
+
+@font-face {
+    font-family: "Bounded";
+    src: url("/fonts/Bounded-Variable.ttf") format(truetype);
+}
+
+@theme {
+    --font-caveat: "CaveatBrush";
+    --font-bounded: "Bounded";
+}
+
+* {
+    @apply transition-colors duration-500;
+}
+
+@theme {
+    --color-main: #FFE699;
+    
+    --color-popup: #FFFCEB;
+    --color-popup-hover: #b0b0b0;
+    --color-text-popup: #000;
+
+    --color-header: #FFA347;
+    --color-text-header: #000;
+
+    --color-primary: #E48525;
+    --color-text-primary: #000;
+
+    --color-secondary: #FFF4D5;
+    --color-text-secondary: #000;
+
+    --color-switch-background: #FFE55F;
+    --color-switch-circle: #88CC30;
+    --color-switch-icon: #FAFF00;
+
+    --color-scrollbar: #ffa42e;
+}
+
+.dark {
+    --color-main: #032225;
+
+    --color-popup: #2f2f2f;
+    --color-popup-hover: #3f3f3f;
+    --color-text-popup: #fff;
+
+    --color-header: #072a2d;
+    --color-text-header: #fff;
+
+    --color-primary: #0ba13d;
+    --color-text-primary: #000;
+
+    --color-secondary: #063438;
+    --color-text-secondary: #fff;
+
+    --color-switch-background: #A6A6A6;
+    --color-switch-circle: #000;
+    --color-switch-icon: #fff;
+
+    --color-scrollbar: #0e4c51;
+}
+
+body, html {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
