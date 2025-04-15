@@ -43,10 +43,10 @@ class Pizza(models.Model):
         base_price          базовая цена пиццы (без добавочных ингредиентов)
     """
     name = models.CharField(max_length=20)
+    icon = models.CharField(max_length=128)
     description = models.CharField(max_length=500)
     base_price = models.IntegerField()
     ingredients = models.ManyToManyField(Ingredient, through="PizzaIngredient")
-    #calories = models.IntegerField() ???
 
 
 class PizzaIngredient(models.Model):
@@ -59,10 +59,6 @@ class PizzaIngredient(models.Model):
     pizza = models.ForeignKey(Pizza, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     is_additional = models.BooleanField()
-
-
-class Session(models.Model):
-    pass
 
 
 class Order(models.Model):
