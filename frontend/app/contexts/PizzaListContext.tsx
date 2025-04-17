@@ -9,7 +9,7 @@ export type pizzaListState = {
 export const pizzaListContext = createContext<pizzaListState>({} as pizzaListState);
 
 export const PizzaListProvider = ({ children }: { children: ReactNode }) => {
-    const [ pizzaList, setPizzaList ] = useState({} as Pizza[]);
+    const [ pizzaList, setPizzaList ] = useState([] as Pizza[]);
     const [ isLoading, setLoadingState ] = useState(true);
 
     useEffect(() => {
