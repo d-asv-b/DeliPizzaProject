@@ -31,7 +31,7 @@ class Ingredient(models.Model):
         price               добавочная цена ингредиента
     """
     name = models.CharField(max_length=20)
-    icon = models.CharField(max_length=128)
+    icon_url = models.CharField(max_length=128)
     price = models.IntegerField()
 
 
@@ -43,7 +43,7 @@ class Pizza(models.Model):
         base_price          базовая цена пиццы (без добавочных ингредиентов)
     """
     name = models.CharField(max_length=20)
-    icon = models.CharField(max_length=128)
+    icon_url = models.CharField(max_length=128)
     description = models.CharField(max_length=500)
     base_price = models.IntegerField()
     ingredients = models.ManyToManyField(Ingredient, through="PizzaIngredient")
