@@ -27,19 +27,12 @@ export const AppThemeProvider = ({ children }: { children: ReactNode }) => {
         }
 
         setDarkTheme(theme);
-
-        if (theme) {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
     }, []);
 
     const toggleTheme = () => {
         setDarkTheme(!isDarkTheme);
         // Сохраняем выбранную тему в localStorage
         localStorage.setItem("theme", String(!isDarkTheme));
-        document.documentElement.classList.toggle("dark");
     };
 
     return (
