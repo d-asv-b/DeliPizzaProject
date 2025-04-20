@@ -9,6 +9,7 @@ import {
 import "./app.css";
 import { PizzaListProvider } from "./contexts/PizzaListContext";
 import { AppThemeProvider } from "./contexts/AppThemeContext";
+import PageContainer from "./PageContainer";
 
 export function Layout({ children }: { children: React.ReactNode }) {
     return (
@@ -25,7 +26,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <body className="flex h-full w-full overflow-hidden">
                 <AppThemeProvider>
                     <PizzaListProvider>
-                        {children}
+                        <PageContainer>
+                            {children}
+                        </PageContainer>
                     </PizzaListProvider>
                 </AppThemeProvider>
                 <ScrollRestoration />

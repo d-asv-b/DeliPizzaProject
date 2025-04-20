@@ -13,7 +13,7 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
                     src={pizza.iconUrl.length != 0 ? pizza.iconUrl : undefined}
                 ></img>
             </div>
-            <div className="flex flex-col flex-grow">
+            <div className="flex flex-col">
                 <div className="text-xl font-bold">
                     {pizza.name}
                 </div>

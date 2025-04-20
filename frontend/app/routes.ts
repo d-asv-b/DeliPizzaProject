@@ -7,10 +7,10 @@ import {
 export default [
     index("routes/Main.tsx"),
 
-    route("signup", "routes/signUp.tsx"),
-    route("signin", "routes/signIn.tsx"),
-    route("account", "routes/accountSettings.tsx"),
+    route("signup", "routes/SignUp.tsx"),
+    route("signin", "routes/SignIn.tsx"),
+    route("account", "routes/AccountSettings.tsx"),
 
-    route("cart", "routes/cart.tsx"),
+    route("cart", "routes/Cart.tsx"),
 
 ] satisfies RouteConfig;
