@@ -1,0 +1,40 @@
+services:
+    backend:
+        ports:
+            - ":3001"
+        build: /backend
+        networks:
+            - main_network
+        env_file:
+            - ./backend/.env
+        environment:
+            - DEBUG=TRUE
+            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+            - HOSTNAME=${HOSTNAME}
+    frontend:
+        ports:
+            - ":3000"
+        build: /frontend
+        networks:
+            - main_network
+        depends_on:
+            - backend
+    nginx:
+        ports:
+            - "80:80"
+            - "443:443"
+        build: /nginx
+        networks:
+            - main_network
+        depends_on:
+            - backend
+            - frontend
+        environment:
+            - SERVICE_FRONTEND_HOST=frontend
+            - SERVICE_FRONTEND_PORT=3000
+            - SERVICE_BACKEND_HOST=backend
+            - SERVICE_BACKEND_PORT=3001
+            - SERVER_HOSTNAME=${HOSTNAME}
+networks:
+    main_network:
+        name: main_network

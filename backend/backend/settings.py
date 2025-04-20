@@ -18,9 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(find_dotenv())
 
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
-DEBUG = True
+DEBUG = (os.environ["IS_DEBUG"] == "True")
 CORS_ORIGIN_ALLOW_ALL = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ f".{os.environ["HOSTNAME"]}" ]
 
 
 # Application definition
@@ -38,6 +38,23 @@ INSTALLED_APPS = [
     "api.apps.ApiConfig"
 ]
 
+DEFAULT_RENDERER_CLASSES = (
+    "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
+)
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES = DEFAULT_RENDERER_CLASSES + (
+        "djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer",
+    )
+
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": DEFAULT_RENDERER_CLASSES,
+    "DEFAULT_PARSER_CLASSES": (
+        "djangorestframework_camel_case.parser.CamelCaseFormParser",
+        "djangorestframework_camel_case.parser.CamelCaseMultiPartParser",
+        "djangorestframework_camel_case.parser.CamelCaseJSONParser",
+    ),
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -48,6 +65,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    "djangorestframework_camel_case.middleware.CamelCaseMiddleWare"
 ]
 
 ROOT_URLCONF = 'backend.urls'
