@@ -40,6 +40,9 @@
     --color-switch-icon: #FAFF00;
 
     --color-scrollbar: #ffa42e;
+
+    --color-input: #ffffff;
+    --color-text-input: #000000;
 }
 
 .dark {
@@ -63,6 +66,9 @@
     --color-switch-icon: #fff;
 
     --color-scrollbar: #0e4c51;
+
+    --color-input: #263637;
+    --color-text-input: #FFFFFF;
 }
 
 body, html {
