@@ -1,26 +1,49 @@
+from datetime import date
+import uuid
 from django.db import models
+from django.core.validators import validate_email
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 
 
-class User(models.Model):
+class User(AbstractBaseUser):
     """
     Поля класса
         id
         name                имя пользователя
         email               эл. почта пользователя
         phone_number        номер телефона пользователя
-        pwd_hash            хэш пароля (argon2)
-        pwd_salt            соль для хэширования пароля
+        password            хэш пароля (argon2), содержит в себе соль
         birthday_date       дата дня рождения пользователя
         registration_date   дата регистрации
     """
-    id = models.CharField(max_length=22, primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=20)
-    email = models.EmailField()
-    phone_number = models.CharField(max_length=10)
-    pwd_hash = models.BinaryField(max_length=256)
-    pwd_salt = models.BinaryField(max_length=128)
-    birthday_date = models.DateField()
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=16)
+    password = models.CharField(max_length=128)
+    birthday_date = models.DateField(default=None, blank=True, null=True)
     registration_date = models.DateField()
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
+
+class RegistrationUserData(models.Model):
+    class Meta:
+        managed = False
+        
+    name = models.CharField(max_length=20)
+    email = models.EmailField(validators=[validate_email])
+    phone_number = models.CharField(max_length=16)
+    pwd_hash = models.CharField(max_length=128)
+
+
+class AuthorizationUserData(models.Model):
+    class Meta:
+            managed = False
+    
+    email = models.EmailField(validators=[validate_email])
+    pwd_hash = models.CharField(max_length=128)
 
 
 class Ingredient(models.Model):
