@@ -1,11 +1,56 @@
-from datetime import date
 import uuid
+import os
+
 from django.db import models
 from django.core.validators import validate_email
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
+from django.utils import timezone
+
+from .utils import create_hashed_password, check_password
 
 
-class User(AbstractBaseUser):
+class UserManager(BaseUserManager):
+    def create_user(
+        self,
+        email: str,
+        password: str,
+        **extra_fields
+    ):
+        if not email:
+            raise ValueError("Email field is missing!")
+        
+        extra_fields.setdefault("registration_date", timezone.now())
+        email = self.normalize_email(email)
+        
+        password_salt = os.urandom(16)
+        final_pwd_hash = create_hashed_password(password, password_salt)
+
+        user = self.model(email=email, **extra_fields)
+        user.password = final_pwd_hash
+
+        user.save()
+
+        return user
+    
+    def create_superuser(
+        self,
+        email: str,
+        password: str,
+        **extra_fields
+    ):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
+
+        return self.create_user(
+            email,
+            password,
+            **extra_fields
+        )
+
+
+class User(AbstractBaseUser, PermissionsMixin):
     """
     Поля класса
         id
@@ -24,8 +69,20 @@ class User(AbstractBaseUser):
     birthday_date = models.DateField(default=None, blank=True, null=True)
     registration_date = models.DateField()
 
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+    objects = UserManager()
+
+    def check_password(
+        self,
+        password: str      
+    ) -> bool:
+        return check_password(password, self.password)
 
 
 class RegistrationUserData(models.Model):

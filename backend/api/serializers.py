@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Ingredient, PizzaIngredient, Pizza
+from .models import User, RegistrationUserData, AuthorizationUserData, Ingredient, PizzaIngredient, Pizza
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -27,3 +27,21 @@ class PizzaSerializer(serializers.ModelSerializer):
     def get_ingredients(self, obj):
         pizza_ingredients = PizzaIngredient.objects.filter(pizza=obj)
         return PizzaIngredientSerializer(pizza_ingredients, many=True).data
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [ "id", "name", "email", "phone_number", "pwd_hash", "pwd_salt", "birthday_date", "registration_date" ]
+
+
+class RegistrationDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegistrationUserData
+        fields = [ "name", "email", "phone_number", "pwd_hash" ]
+
+
+class AuthorizationDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuthorizationUserData
+        fields = [ "email", "pwd_hash" ]
