@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from "react";
-import type { Pizza } from "~/typings";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { getPizzaList } from "~/api/pizza";
+import type { Pizza } from "~/models/pizza";
 
 export type pizzaListState = {
     isLoading: boolean,
@@ -15,9 +16,8 @@ export const PizzaListProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const fetchPizzaList = async () => {            
             try {
-                let response = await fetch("/api/pizzas/get_list");
-                let pizzaList = (await response.json()) as Pizza[];
-                setPizzaList(pizzaList);
+                let response = await getPizzaList({});
+                setPizzaList(response.pizzaData);
             }
             catch (e) {
                 console.log(e);

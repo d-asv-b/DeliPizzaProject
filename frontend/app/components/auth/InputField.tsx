@@ -58,8 +58,8 @@ const InputField: React.FC<InputFieldProps> = ({
         type === "password" ? "px-3 pr-10 py-2" : "px-3 py-2";
 
     return (
-        <div className="mb-4">
-            <label className="block font-bold mb-2 text-text-secondary">{title}</label>
+        <div className="not-first:mt-1">
+            <label className="pl-1 block font-bold text-text-secondary">{title}:</label>
             <div className="relative">
                 <input
                     type={inputType}
@@ -71,7 +71,7 @@ const InputField: React.FC<InputFieldProps> = ({
                             ? maxLength
                             : undefined
                     }
-                    className={`w-full ${ inputPaddingClasses } px-3 py-2 border ${ error ? "border-red-500" : "border-gray-300" } rounded-md bg-input text-text-input`}
+                    className={`w-full px-3 pr-10 py-2 border ${ error ? "border-red-500" : "border-gray-300" } rounded-md bg-input text-text-input`}
                 />
                 {
                     type === "password" && (
@@ -84,14 +84,14 @@ const InputField: React.FC<InputFieldProps> = ({
                     </button>
                 )}
                 {maxLength && ["name", "email", "phone"].includes(type) && (
-                <div className="absolute inset-y-0 right-0 pr-3 place-content-center align-middle inline-block text-right text-sm text-gray-500">
-                    {value.length}/{maxLength}
-                </div>
+                    <div className="absolute inset-y-0 right-0 pr-3 place-content-center align-middle inline-block text-right text-sm text-gray-500">
+                        {value.length}/{maxLength}
+                    </div>
                 )}
             </div>
             
             {error && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm">
                     {error}
                 </p>
             )}

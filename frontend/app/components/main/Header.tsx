@@ -3,11 +3,14 @@ import { FaGear } from "react-icons/fa6"
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import ThemeSwitch from "./ThemeSwitch";
+import { useAuthContext } from "~/contexts/AuthContext";
 
 export default function Header() {
     const [showSettings, updShowSettings] = useState(false);
     const settingsPopupRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
+
+    const { user } = useAuthContext();    
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -46,7 +49,7 @@ export default function Header() {
                         <FaGear size={24} className="mx-1" />
                     </div>
 
-                    {showSettings && (
+                    { showSettings && (
                         <div
                         ref={settingsPopupRef}
                         className="
@@ -72,18 +75,37 @@ export default function Header() {
                                 border-b-5 border-b-popup
                                 border-r-10 border-r-transparent"
                             />
-                            <div
-                                className="hover:bg-popup-hover px-4 py-1 rounded-t-md"
-                                onClick={ () => navigate("/signIn") }
-                            >
-                                Войти
-                            </div>
-                            <div 
-                                className="hover:bg-popup-hover px-4 py-1"
-                                onClick={ () => navigate("/settings") }
-                            >
-                                Настройки
-                            </div>
+                            {
+                                user ?
+                                (
+                                    <>
+                                        <div className="py-2">
+                                            Привет, { user.name }!
+                                        </div>
+                                        <div 
+                                            className="hover:bg-popup-hover px-7 py-1"
+                                            onClick={ () => navigate("/settings") }
+                                        >
+                                            Настройки
+                                        </div>
+                                        <div 
+                                            className="text-red-500 hover:bg-popup-hover px-4 py-1"
+                                            onClick={ () => navigate("/settings") }
+                                        >
+                                            Выйти
+                                        </div>
+                                    </>
+                                )
+                                :
+                                (
+                                    <div
+                                        className="hover:bg-popup-hover px-7 py-1 rounded-t-md"
+                                        onClick={ () => navigate("/signIn") }
+                                    >
+                                        Войти
+                                    </div>
+                                )
+                            }
                             <div className="flex flex-col items-center">
                                 <div>Тема:</div>
                                     <ThemeSwitch/>

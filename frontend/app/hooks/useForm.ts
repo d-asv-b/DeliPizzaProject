@@ -17,7 +17,7 @@ export default function useForm(config: FormConfig) {
                 ([fieldName, fieldConfig]) => [ fieldName, fieldConfig.initialValue ]
             )
         )
-    )
+    );
     
     let [ errors, setErrors ] = useState<Record<string, string>>({});
     let [ wasTouched, setWasTouched ] = useState<Record<string, boolean>>({});
@@ -49,13 +49,14 @@ export default function useForm(config: FormConfig) {
     const handleFieldChange = (fieldName: string) => (value: string) => {
         setValues((oldValues) => ( {...oldValues, [fieldName]: value} ));
         setWasTouched((oldValues) => ( { ...oldValues, [fieldName]: true } ));
-    }
+    };
 
     const validateForm = (): boolean => {
         let newErrors: Record<string, string> = {};
 
         for (let key in config) {
-            let error = config[key].validateFunc(values[key]);
+            let error = config[key].validateFunc(values[key], values);
+            wasTouched[key] = true;
 
             if (error) {
                 newErrors[key] = error;
@@ -64,7 +65,7 @@ export default function useForm(config: FormConfig) {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }
+    };
 
     return {
         values,

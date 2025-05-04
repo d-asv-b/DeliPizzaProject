@@ -10,6 +10,8 @@ import "./app.css";
 import { PizzaListProvider } from "./contexts/PizzaListContext";
 import { AppThemeProvider } from "./contexts/AppThemeContext";
 import PageContainer from "./PageContainer";
+import { Toaster } from "react-hot-toast";
+import { AuthContextProvider } from "./contexts/AuthContext";
 
 export function Layout({ children }: { children: React.ReactNode }) {
     return (
@@ -23,12 +25,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Meta />
                 <Links/>
             </head>
-            <body className="flex h-full w-full overflow-hidden">
+            <body className="flex h-full w-full">
                 <AppThemeProvider>
                     <PizzaListProvider>
-                        <PageContainer>
-                            {children}
-                        </PageContainer>
+                        <AuthContextProvider>
+                            <PageContainer>
+                                <Toaster position="top-center"/>
+                                {children}
+                            </PageContainer>
+                        </AuthContextProvider>
                     </PizzaListProvider>
                 </AppThemeProvider>
                 <ScrollRestoration />

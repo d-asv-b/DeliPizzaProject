@@ -1,12 +1,21 @@
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
+
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 
-from .models import Pizza
-from .serializers import PizzaSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
-# Create your views here.
+from backend import settings
+
+from .models import RegistrationUserData, AuthorizationUserData, Pizza
+from .serializers import RegistrationDataSerializer, AuthorizationDataSerializer, PizzaSerializer
+
 
 class PizzaListViewSet(APIView):
     def get(self, request: Request):
@@ -28,6 +37,252 @@ class PizzaListViewSet(APIView):
             
         serializer = PizzaSerializer(instance=queryset, many=True)
         return Response(
-            serializer.data,
+            {
+                "pizza_data": serializer.data
+            },
             status=status.HTTP_200_OK
         )
+
+@api_view([ "POST" ])
+def userSignUpView(request: Request):
+    serializer = RegistrationDataSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        if len(serializer.errors):
+            if "email" in serializer.errors:
+                return Response(
+                    data={
+                        "error": "Недействительная эл. почта"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        return Response(
+            data={
+                "error": "Неправильные параметры запроса."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    reg_data = RegistrationUserData(**serializer.data)
+
+    # Проверяем, что все поля правильны
+    if (len(reg_data.name) == 0 or not reg_data.name.isalpha()) or \
+        (len(reg_data.phone_number) == 0) or \
+        (len(reg_data.pwd_hash) != 128):
+        return Response(
+            data={
+                "error": "Неправильные параметры запроса."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    User = get_user_model()
+
+    # Проверяем, есть ли пользователь с такой же почтой
+    if User.objects.filter(email=reg_data.email).exists():
+        return Response(
+            data={
+                "error": "Пользователь с такой почтой уже зарегистрирован!"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    new_user_data = User.objects.create_user(
+        name=reg_data.name,
+        email=reg_data.email,
+        phone_number=reg_data.phone_number,
+        password=reg_data.pwd_hash,
+        registration_date=timezone.now()
+    )
+
+    # Создаем JWT токены
+    refresh_token = RefreshToken.for_user(user=new_user_data)
+    access_token = refresh_token.access_token
+
+    # Возвращаем публичную информацию и access-токен
+    response = Response(
+        status=status.HTTP_201_CREATED,
+        data={
+            "user_data": {
+                "name": new_user_data.name,
+                "email": new_user_data.email,
+                "phone_number": new_user_data.phone_number,
+                "registration_date": new_user_data.registration_date,
+                "birthday_date": "" if new_user_data.birthday_date == None else str(new_user_data.birthday_date)
+            },
+            "access_token": str(access_token)
+        }
+    )
+
+    response.set_cookie(
+        key="REFRESH_TOKEN",
+        value=str(refresh_token),
+        expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+        httponly=True,
+        path="/",
+        samesite="Strict"
+    )
+
+    return response
+
+@api_view([ "POST" ])
+def userSignInView(request: Request):
+    serializer = AuthorizationDataSerializer(data=request.data)
+    if not serializer.is_valid():
+        if len(serializer.errors):
+            if "email" in serializer.errors:
+                return Response(
+                    data={
+                        "error": "Недействительная эл. почта"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        return Response(
+            data={
+                "error": "Неправильные параметры запроса."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    auth_data = AuthorizationUserData(**serializer.data)
+
+    if len(auth_data.pwd_hash) != 128:
+        return Response(
+            data={
+                "error": "Неправильные параметры запроса."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    User = get_user_model()
+
+    # Проверяем, существует ли пользователь с таким email
+    try:
+        user_data = User.objects.get(email=auth_data.email)
+    except ObjectDoesNotExist:
+        return Response(
+            data={
+                "error": "Неправильные почта или пароль."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as err:
+        print(err)
+        return Response(
+            data={
+                "error": "Ошибка на сервере, попробуйте позже."
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    # Проверяем, совпадают ли пароли
+    if not user_data.check_password(auth_data.pwd_hash):
+        return Response(
+            data={
+                "error": "Неправильные почта или пароль."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Создаем JWT токены
+    refresh_token = RefreshToken.for_user(user=user_data)
+    access_token = refresh_token.access_token
+
+    # Возвращаем публичную информацию и access-токен
+    response = Response(
+        status=status.HTTP_202_ACCEPTED,
+        data={
+            "user_data": {
+                "name": user_data.name,
+                "email": user_data.email,
+                "phone_number": user_data.phone_number,
+                "registration_date": user_data.registration_date,
+                "birthday_date": "" if user_data.birthday_date == None else str(user_data.birthday_date)
+            },
+            "access_token": str(access_token)
+        }
+    )
+
+    response.set_cookie(
+        key="REFRESH_TOKEN",
+        value=str(refresh_token),
+        expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+        httponly=True,
+        path="/",
+        samesite="Strict"
+    )
+
+    return response
+
+@api_view([ "POST" ])
+def refreshAccessToken(request: Request):
+    refresh_token_cookie = request.COOKIES.get("REFRESH_TOKEN", "")
+
+    if len(refresh_token_cookie) == 0:
+        return Response(
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    # Проверяем, что refresh-токен действителен
+    try:
+        refresh_token = RefreshToken(refresh_token_cookie)
+    except:
+        return Response(
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    User = get_user_model()
+
+    # Проверяем, существует ли пользователь
+    try:
+        user_data = User.objects.get(id=refresh_token.get("user_id"))
+    except ObjectDoesNotExist:
+        return Response(
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    except Exception as err:
+        print(err)
+        return Response(
+            data={
+                "error": "Ошибка на сервере, попробуйте позже."
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    # Проверяем, что refresh-токен не в черном списке. Иначе - аннулируем все refresh-токены для пользователя
+    try:
+        refresh_token.check_blacklist()
+    except: 
+        user_refresh_tokens = OutstandingToken.objects.filter(user_id=user_data)
+        for token in user_refresh_tokens:
+            BlacklistedToken.objects.get_or_create(token=token)
+
+        return Response(
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    
+
+    # Добавляем старый refresh-токен в черный список и создаем новую пару токенов
+    refresh_token.blacklist()
+    new_refresh_token = RefreshToken.for_user(user_data)
+    access_token = new_refresh_token.access_token
+
+    response = Response(
+        status=status.HTTP_201_CREATED,
+        data={
+            "access_token": str(access_token)
+        }
+    )
+
+    response.set_cookie(
+        key="REFRESH_TOKEN",
+        value=str(refresh_token),
+        expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
+        httponly=True,
+        path="/",
+        samesite="Strict"
+    )
+
+    return response

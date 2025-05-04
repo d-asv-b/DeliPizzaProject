@@ -1,26 +1,106 @@
+import uuid
+import os
+
 from django.db import models
+from django.core.validators import validate_email
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
+from django.utils import timezone
+
+from .utils import create_hashed_password, check_password
 
 
-class User(models.Model):
+class UserManager(BaseUserManager):
+    def create_user(
+        self,
+        email: str,
+        password: str,
+        **extra_fields
+    ):
+        if not email:
+            raise ValueError("Email field is missing!")
+        
+        extra_fields.setdefault("registration_date", timezone.now())
+        email = self.normalize_email(email)
+        
+        password_salt = os.urandom(16)
+        final_pwd_hash = create_hashed_password(password, password_salt)
+
+        user = self.model(email=email, **extra_fields)
+        user.password = final_pwd_hash
+
+        user.save()
+
+        return user
+    
+    def create_superuser(
+        self,
+        email: str,
+        password: str,
+        **extra_fields
+    ):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
+
+        return self.create_user(
+            email,
+            password,
+            **extra_fields
+        )
+
+
+class User(AbstractBaseUser, PermissionsMixin):
     """
     Поля класса
         id
         name                имя пользователя
         email               эл. почта пользователя
         phone_number        номер телефона пользователя
-        pwd_hash            хэш пароля (argon2)
-        pwd_salt            соль для хэширования пароля
+        password            хэш пароля (argon2), содержит в себе соль
         birthday_date       дата дня рождения пользователя
         registration_date   дата регистрации
     """
-    id = models.CharField(max_length=22, primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=20)
-    email = models.EmailField()
-    phone_number = models.CharField(max_length=10)
-    pwd_hash = models.BinaryField(max_length=256)
-    pwd_salt = models.BinaryField(max_length=128)
-    birthday_date = models.DateField()
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=16)
+    password = models.CharField(max_length=128)
+    birthday_date = models.DateField(default=None, blank=True, null=True)
     registration_date = models.DateField()
+
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()
+
+    def check_password(
+        self,
+        password: str      
+    ) -> bool:
+        return check_password(password, self.password)
+
+
+class RegistrationUserData(models.Model):
+    class Meta:
+        managed = False
+        
+    name = models.CharField(max_length=20)
+    email = models.EmailField(validators=[validate_email])
+    phone_number = models.CharField(max_length=16)
+    pwd_hash = models.CharField(max_length=128)
+
+
+class AuthorizationUserData(models.Model):
+    class Meta:
+            managed = False
+    
+    email = models.EmailField(validators=[validate_email])
+    pwd_hash = models.CharField(max_length=128)
 
 
 class Ingredient(models.Model):

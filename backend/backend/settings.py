@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv, find_dotenv
@@ -19,11 +20,14 @@ load_dotenv(find_dotenv())
 
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = (os.environ["IS_DEBUG"] == "True")
-CORS_ORIGIN_ALLOW_ALL = True
-ALLOWED_HOSTS = [ f".{os.environ["HOSTNAME"]}" ]
 
+hostnames = [hostname for hostname in os.environ["HOSTNAMES"].split(",") if hostname]
+CORS_ALLOWED_ORIGINS = [ f"http://{hostname}" for hostname in hostnames ]
+ALLOWED_HOSTS = hostnames
+CORS_ALLOW_CREDENTIALS=True
 
 # Application definition
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -34,9 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "api.apps.ApiConfig"
 ]
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
 
 DEFAULT_RENDERER_CLASSES = (
     "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
@@ -119,6 +130,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+AUTHENTICATION_BACKENDS = [
+    'api.backends.UserAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -140,3 +157,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = "api.User"

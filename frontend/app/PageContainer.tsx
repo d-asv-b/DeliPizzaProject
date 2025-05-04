@@ -12,7 +12,8 @@ export default function PageContainer({ children }: { children: ReactNode }) {
         <>
             {
                 isMounted ?
-                <div className={ `${ isDarkTheme ? "dark" : "" } h-full w-full` }>
+                <div className={ `${ isDarkTheme ? "dark" : "" } overflow-hidden h-full w-full
+                bg-main bg-[url('/img/pizza-pattern.svg')]` }>
                     { children }
                 </div>
                 :

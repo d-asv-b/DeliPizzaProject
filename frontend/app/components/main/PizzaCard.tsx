@@ -1,4 +1,4 @@
-import type { Pizza } from "~/typings";
+import type { Pizza } from "~/models/pizza";
 
 export default function PizzaCard({ pizza }: {pizza: Pizza}) {
     function addToCart() {
@@ -6,14 +6,14 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
     }
 
     return (
-        <div className="flex flex-row rounded-xl p-5 min-h-44 bg-secondary text-text-secondary">
+        <div className="flex flex-row rounded-xl p-5 min-h sm:min-h-44 bg-secondary text-text-secondary">
             <div className="p-5 items-center">
                 <img
                     className="min-w-20 min-h-20" 
                     src={pizza.iconUrl.length != 0 ? pizza.iconUrl : undefined}
                 ></img>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col flex-grow">
                 <div className="text-xl font-bold">
                     {pizza.name}
                 </div>

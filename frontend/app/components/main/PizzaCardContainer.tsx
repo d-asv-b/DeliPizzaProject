@@ -15,9 +15,6 @@ export default function PizzaCardContainer() {
                 md:px-20
                 sm:px-0
                 py-1
-                bg-main
-                bg-[url('/img/pizza-pattern.svg')]
-                bg-repeat
                 [&::-webkit-scrollbar]:w-2
                 [&::-webkit-scrollbar-track]:my-3
                 [&::-webkit-scrollbar-track]:bg-transparent
