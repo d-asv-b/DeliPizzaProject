@@ -20,8 +20,10 @@ load_dotenv(find_dotenv())
 
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = (os.environ["IS_DEBUG"] == "True")
-CORS_ORIGIN_ALLOW_ALL = True
-# ALLOWED_HOSTS = [ f".{os.environ['HOSTNAME']}" ]
+
+
+CORS_ALLOWED_ORIGING = CORS_TRUSTED_ORIGINS = [ f"http://*.{host}" for host in os.environ["HOSTNAME"]]
+ALLOWED_HOSTS = [ *os.environ["HOSTNAME"] ]
 
 
 # Application definition
