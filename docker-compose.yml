@@ -8,9 +8,7 @@ services:
         env_file:
             - ./backend/.env
         environment:
-            - DEBUG=TRUE
-            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-            - HOSTNAME=${HOSTNAME}
+            - IS_DEBUG=True
     frontend:
         ports:
             - ":3000"
