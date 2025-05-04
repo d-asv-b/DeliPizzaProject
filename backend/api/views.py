@@ -1,6 +1,6 @@
-from django.db.models import Model
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
@@ -161,7 +161,7 @@ def userSignInView(request: Request):
     # Проверяем, существует ли пользователь с таким email
     try:
         user_data = User.objects.get(email=auth_data.email)
-    except Model.DoesNotExist:
+    except ObjectDoesNotExist:
         return Response(
             data={
                 "error": "Неправильные почта или пароль."
@@ -238,7 +238,7 @@ def refreshAccessToken(request: Request):
     # Проверяем, существует ли пользователь
     try:
         user_data = User.objects.get(id=refresh_token.get("user_id"))
-    except Model.DoesNotExist:
+    except ObjectDoesNotExist:
         return Response(
             status=status.HTTP_401_UNAUTHORIZED
         )
