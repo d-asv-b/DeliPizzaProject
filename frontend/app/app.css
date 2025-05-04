@@ -32,6 +32,13 @@
     --color-primary: #E48525;
     --color-text-primary: #000;
 
+    --color-btn-primary-hover: #f29f4b;
+    --color-btn-primary-click: #faad5f;
+
+    --color-link: #0066cc;
+    --color-link-hover: #004999;
+    --color-link-click: #003366;
+
     --color-secondary: #FFF4D5;
     --color-text-secondary: #000;
 
@@ -57,6 +64,13 @@
 
     --color-primary: #0ba13d;
     --color-text-primary: #000;
+
+    --color-btn-primary-hover: #0a6b2a;
+    --color-btn-primary-click: #084d1e;
+
+    --color-link: #4da6ff;
+    --color-link-hover: #1a8cff;
+    --color-link-click: #006bb3;
 
     --color-secondary: #063438;
     --color-text-secondary: #fff;

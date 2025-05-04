@@ -15,7 +15,7 @@ export function hasNumbers(pwd: string): boolean {
 }
 
 export function pwdAreEqual(pwd: string, pwdConfirm: string): boolean {
-    return pwd !== pwdConfirm;
+    return pwd === pwdConfirm;
 }
 
 export function validateName(name: string): string {
@@ -52,14 +52,33 @@ export function validatePhone(phone: string): string {
     return "";
 }
 
-export function validatePassword(password: string): string {
-    if (password.length < 6) return "Пароль должен содержать минимум 6 символов.";
+export function validatePasswordReg(password: string): string {
+    if (password.length == 0) {
+        return "Введите пароль!";
+    }
+    if (!(checkLength(password) && hasUpperCase(password) && hasLowerCase(password) && hasNumbers(password))) {
+        return "Пароль должен удовлетворять всем требованиям.";
+    }
     return "";
 }
 
-export function validatePasswordConfirm(password: string, confirmPassword: string): string {
-    if (password !== confirmPassword) {
-        return "Пароли не совпадают.";
+export function validatePasswordAuth(password: string): string {
+    if (password.length == 0) {
+        return "Введите пароль!";
+    }
+    else if (password.length < 8) {
+        return "Пароль должен быть не короче 8 символов";
+    }
+
+    return "";
+}
+
+export function validatePasswordConfirm(confirmPassword: string, password: string): string {
+    if (confirmPassword.length == 0) {
+        return "Повторите пароль!";
+    }
+    if (validatePasswordReg(password) != "" || password !== confirmPassword) {
+        return "Пароли должны удовлетворять всем требованиям.";
     }
 
     return "";

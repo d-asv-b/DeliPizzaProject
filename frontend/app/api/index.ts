@@ -2,9 +2,10 @@ import axios from "axios"
 import { refreshTokenPair } from "./auth";
 
 const api = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/",
+    baseURL: "/api/",
+    withCredentials: true,
     headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 });
 
@@ -38,6 +39,7 @@ api.interceptors.response.use(
             }
         }
 
+        localStorage.removeItem("USER_DATA");
         return Promise.reject(error)
     }
 )

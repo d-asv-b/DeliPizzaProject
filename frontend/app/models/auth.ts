@@ -20,7 +20,7 @@ export interface RegRequestData {
 export type RegResponseData = AuthResponseData;
 
 export interface AuthResponseData {
-    user: UserPublicInfo;
+    userData: UserPublicInfo;
     accessToken: string;
 };
 

@@ -2,9 +2,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import InputField from "~/components/auth/InputField";
 import PasswordRequirement from "~/components/auth/PasswordRequirement";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import useForm from "~/hooks/useForm";
-import { checkLength, hasLowerCase, hasNumbers, hasUpperCase, pwdAreEqual, validateEmail, validateName, validatePassword, validatePasswordConfirm, validatePhone } from "~/utils/validators";
+import { checkLength, hasLowerCase, hasNumbers, hasUpperCase, pwdAreEqual, validateEmail, validateName, validatePasswordReg, validatePasswordConfirm, validatePhone } from "~/utils/validators";
+import { registerUser } from "~/api/auth";
+import toast from "react-hot-toast";
+import createSHA512Hash from "~/utils/hash";
+
+import { PiXCircleFill, PiCheckCircleFill } from "react-icons/pi";
+import { AxiosError } from "axios";
+import { ImSpinner4 } from "react-icons/im";
+import { useAuthContext } from "~/contexts/AuthContext";
 
 export default function SignUpPage() {
     const { values, errors, handleFieldChange, validateForm } = useForm(
@@ -23,22 +31,101 @@ export default function SignUpPage() {
             },
             password: {
                 initialValue: "",
-                validateFunc: validatePassword
+                validateFunc: validatePasswordReg
             },
             passwordConfirm: {
                 initialValue: "",
-                validateFunc: (value, values) => { return validatePasswordConfirm(value, values!.password); }
+                validateFunc: (value, values) => {
+                    return validatePasswordConfirm(value, values!.password); 
+                }
             },
         }
     );
 
+    const { user, setUserData} = useAuthContext();
+
     let [searchParams] = useSearchParams();
     let navigate = useNavigate();
 
+    let [ btnIsDisabled, setBtnDisabled ] = useState(false);
+
+    useEffect(() => {
+        // Если пользователь уже авторизован, перенаправляем его обратно
+        if (user) {
+            navigate(searchParams.get("dst") || "/");
+        }
+    }, []);
+
+    async function submitForm() {
+        if (!validateForm()) {
+            return;
+        }
+
+        setBtnDisabled(true);
+
+        let pwdHash = await createSHA512Hash(values.password);
+
+        try {
+            let userData = await registerUser(
+                {
+                    name: values.name,
+                    email: values.email,
+                    phoneNumber: values.phone,
+                    pwdHash: pwdHash,
+                }
+            );
+
+            setUserData(userData.userData);
+            sessionStorage.setItem("ACCESS_TOKEN", userData.accessToken);
+
+            toast(
+                "Вы зарегистрированы! Перенаправляем вас...",
+                {
+                    icon: <PiCheckCircleFill size={20} className="text-green-600"/>
+                }
+            );
+
+            setTimeout(
+                () => {
+                    navigate(searchParams.get("dst") || "/");
+                }, 1000
+            );
+        }
+        catch (error) {
+            if (error instanceof AxiosError && error.response) {
+                toast(
+                    error.response.data.error,
+                    {
+                        icon: <PiXCircleFill size={20} className="text-red-600"/>
+                    }
+                );
+            }
+            setBtnDisabled(false);
+        }
+    }
+
     return (
-        <div className="h-full w-full flex justify-center items-center bg-main">
-            <div className="flex flex-col w-full lg:w-3/7 md:w-3/5 sm:w-1/1 lg:h-auto md:h-auto sm:h-1/1 px-15 p-5 border-2 rounded-xl bg-secondary">
-                <div className="text-xl text-center font-bounded font-bold text-text-secondary">
+        <div className="h-full w-full flex justify-center items-center bg-transparent">
+            <div className="
+                flex flex-col 
+                w-full h-full
+                justify-center 
+                lg:w-3/7 md:w-3/5 sm:w-3/4
+                py-5
+                px-5 sm:px-15 
+                sm:h-auto 
+                sm:border-2 
+                sm:rounded-xl
+                bg-secondary
+                overflow-y-auto
+                [&::-webkit-scrollbar]:w-0.5
+                sm:[&::-webkit-scrollbar]:w-2
+                [&::-webkit-scrollbar-track]:bg-transparent
+                [&::-webkit-scrollbar-thumb]:rounded-full
+                [&::-webkit-scrollbar-thumb]:my-3
+                [&::-webkit-scrollbar-thumb]:bg-scrollbar"
+            >
+                <div className="text-2xl text-center font-bounded font-bold text-text-secondary">
                     Регистрация
                 </div>
 
@@ -53,7 +140,7 @@ export default function SignUpPage() {
                 />
 
                 <InputField
-                    title="Почта:"
+                    title="Почта"
                     type="email"
                     maxLength={30}
                     placeholder="Введите адрес электронной почты..."
@@ -63,7 +150,7 @@ export default function SignUpPage() {
                 />
 
                 <InputField
-                    title="Номер телефона:"
+                    title="Номер телефона"
                     type="phone"
                     maxLength={16}
                     placeholder="Введите ваш номер телефона..."
@@ -73,7 +160,7 @@ export default function SignUpPage() {
                 />
 
                 <InputField
-                    title="Пароль:"
+                    title="Пароль"
                     type="password"
                     placeholder="Введите пароль..."
                     value={values.password}
@@ -84,7 +171,6 @@ export default function SignUpPage() {
                 <AnimatePresence>
                     {values.password.length > 0 && <motion.div
                         className="flex flex-col gap-0.5 mb-2"
-                        style={{ overflow: "hidden" }}
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -93,7 +179,7 @@ export default function SignUpPage() {
                         }}
                     >
                         <PasswordRequirement
-                            requirementText="Пароль должен быть длиннее 8 символов"
+                            requirementText="Пароль должен быть не короче 8 символов"
                             value={checkLength(values.password)}
                             index={0}
                         />
@@ -119,7 +205,7 @@ export default function SignUpPage() {
                 </AnimatePresence>
 
                 <InputField
-                    title="Повторите пароль:"
+                    title="Повторите пароль"
                     type="password"
                     placeholder="Введите пароль снова..."
                     value={values.passwordConfirm}
@@ -131,9 +217,8 @@ export default function SignUpPage() {
                     {
                         values.passwordConfirm.length > 0 &&
                         <motion.div
-                            style={{ overflow: "hidden" }}
                             initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
+                            animate={{ height: "auto"   , opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{
                                 height: { duration: 0.2, ease: "easeInOut" }
@@ -148,12 +233,36 @@ export default function SignUpPage() {
                     }
                 </AnimatePresence>
 
-                <button className="p-3 text-lg font-semibold font-bounded rounded-2xl bg-primary text-text-primary">
-                    Зарегистрироваться
+                <button 
+                    className="
+                        mt-2 p-3 
+                        text-md 
+                        sm:max-md:text-lg lg:text-xl 
+                        font-semibold font-bounded 
+                        rounded-2xl
+                        place-items-center
+                        hover:cursor-pointer hover:bg-btn-primary-hover
+                      active:bg-btn-primary-click
+                      bg-primary text-text-primary"
+                    onClick={submitForm}
+                    disabled={btnIsDisabled}
+                >
+                    {
+                        btnIsDisabled ?
+                        <ImSpinner4 size={20} className="animate-spin"/>
+                        :
+                        "Зарегистрироваться"
+                    }
                 </button>
 
-                <div className="text-center text-text-secondary">
-                    <a href="/signIn">Перейти к авторизации</a>
+                <div className="
+                    pt-2
+                    text-center duration-0!
+                    text-link
+                    hover:text-link-hover
+                    active:text-link-click"
+                >
+                    <Link to={ "/signIn" }>Перейти к авторизации</Link>
                 </div>
             </div>
         </div>
