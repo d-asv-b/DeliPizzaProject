@@ -14,7 +14,11 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from backend import settings
 
 from .models import RegistrationUserData, AuthorizationUserData, Pizza
-from .serializers import RegistrationDataSerializer, AuthorizationDataSerializer, PizzaSerializer
+from .serializers import ProfileDataSerializer, RegistrationDataSerializer, AuthorizationDataSerializer, PizzaSerializer
+from .decorators import access_token_required
+
+
+User = get_user_model()
 
 
 class PizzaListViewSet(APIView):
@@ -44,7 +48,7 @@ class PizzaListViewSet(APIView):
         )
 
 @api_view([ "POST" ])
-def userSignUpView(request: Request):
+def user_sign_up_view(request: Request):
     serializer = RegistrationDataSerializer(data=request.data)
 
     if not serializer.is_valid():
@@ -77,8 +81,6 @@ def userSignUpView(request: Request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    User = get_user_model()
-
     # Проверяем, есть ли пользователь с такой же почтой
     if User.objects.filter(email=reg_data.email).exists():
         return Response(
@@ -104,13 +106,7 @@ def userSignUpView(request: Request):
     response = Response(
         status=status.HTTP_201_CREATED,
         data={
-            "user_data": {
-                "name": new_user_data.name,
-                "email": new_user_data.email,
-                "phone_number": new_user_data.phone_number,
-                "registration_date": new_user_data.registration_date,
-                "birthday_date": "" if new_user_data.birthday_date == None else str(new_user_data.birthday_date)
-            },
+            "user_data": ProfileDataSerializer(new_user_data).data,
             "access_token": str(access_token)
         }
     )
@@ -127,7 +123,7 @@ def userSignUpView(request: Request):
     return response
 
 @api_view([ "POST" ])
-def userSignInView(request: Request):
+def user_sign_in_view(request: Request):
     serializer = AuthorizationDataSerializer(data=request.data)
     if not serializer.is_valid():
         if len(serializer.errors):
@@ -155,9 +151,7 @@ def userSignInView(request: Request):
             },
             status=status.HTTP_400_BAD_REQUEST
         )
-
-    User = get_user_model()
-
+    
     # Проверяем, существует ли пользователь с таким email
     try:
         user_data = User.objects.get(email=auth_data.email)
@@ -194,13 +188,7 @@ def userSignInView(request: Request):
     response = Response(
         status=status.HTTP_202_ACCEPTED,
         data={
-            "user_data": {
-                "name": user_data.name,
-                "email": user_data.email,
-                "phone_number": user_data.phone_number,
-                "registration_date": user_data.registration_date,
-                "birthday_date": "" if user_data.birthday_date == None else str(user_data.birthday_date)
-            },
+            "user_data": ProfileDataSerializer(user_data).data,
             "access_token": str(access_token)
         }
     )
@@ -217,7 +205,7 @@ def userSignInView(request: Request):
     return response
 
 @api_view([ "POST" ])
-def refreshAccessToken(request: Request):
+def refresh_access_token(request: Request):
     refresh_token_cookie = request.COOKIES.get("REFRESH_TOKEN", "")
 
     if len(refresh_token_cookie) == 0:
@@ -232,8 +220,6 @@ def refreshAccessToken(request: Request):
         return Response(
             status=status.HTTP_401_UNAUTHORIZED
         )
-    
-    User = get_user_model()
 
     # Проверяем, существует ли пользователь
     try:
@@ -286,3 +272,23 @@ def refreshAccessToken(request: Request):
     )
 
     return response
+
+@api_view([ "GET" ])
+@access_token_required
+def get_profile_info(request: Request):
+    if not hasattr(request, "user") or not (type(request.user) == User):
+        return Response(
+            {
+                "error": "Error on server. Please try again later"
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+    user_data = ProfileDataSerializer(request.user).data
+
+    return Response(
+        {
+            "user_data": user_data
+        },
+        status=status.HTTP_200_OK
+    )

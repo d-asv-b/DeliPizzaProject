@@ -45,3 +45,14 @@ class AuthorizationDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuthorizationUserData
         fields = [ "email", "pwd_hash" ]
+
+
+class ProfileDataSerializer(serializers.ModelSerializer):
+    birthday_date = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [ "name", "email", "phone_number", "birthday_date", "registration_date" ]
+
+    def get_birthday_date(self, user_obj):
+        return user_obj.birthday_date if user_obj.birthday_date else ""
