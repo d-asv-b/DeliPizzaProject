@@ -95,7 +95,7 @@ def user_sign_up_view(request: Request):
         email=reg_data.email,
         phone_number=reg_data.phone_number,
         password=reg_data.pwd_hash,
-        registration_date=timezone.now()
+        registration_date=timezone.now().date()
     )
 
     # Создаем JWT токены
