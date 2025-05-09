@@ -1,7 +1,10 @@
 FROM nginx:latest
 
-COPY nginx.conf.template /etc/nginx/templates/nginx.conf.template
-RUN rm /etc/nginx/conf.d/default.conf
-
 EXPOSE 80
 EXPOSE 443
+
+COPY custom-entrypoint.sh /usr/local/bin/custom-entrypoint.sh
+RUN chmod +x /usr/local/bin/custom-entrypoint.sh
+
+ENTRYPOINT [ "/usr/local/bin/custom-entrypoint.sh" ]
+CMD [ "nginx", "-g", "daemon off;" ]
