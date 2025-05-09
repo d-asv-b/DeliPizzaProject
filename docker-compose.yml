@@ -2,17 +2,15 @@ services:
     backend:
         ports:
             - ":3001"
-        build: /backend
+        build: ./backend
         networks:
             - main_network
         env_file:
             - ./backend/.env
-        environment:
-            - IS_DEBUG=True
     frontend:
         ports:
             - ":3000"
-        build: /frontend
+        build: ./frontend
         networks:
             - main_network
         depends_on:
@@ -21,7 +19,7 @@ services:
         ports:
             - "80:80"
             - "443:443"
-        build: /nginx
+        build: ./nginx
         networks:
             - main_network
         depends_on:
@@ -32,7 +30,20 @@ services:
             - SERVICE_FRONTEND_PORT=3000
             - SERVICE_BACKEND_HOST=backend
             - SERVICE_BACKEND_PORT=3001
-            - SERVER_HOSTNAME=${HOSTNAME}
+        volumes:
+            - ./nginx/ssl-setup.conf:/etc/nginx/conf.d/ssl-setup.conf
+            - ./nginx/nginx.conf.template:/etc/nginx/templates/nginx.conf.template
+            - /etc/certs:/etc/letsencrypt
+            - ./certbot/www:/var/www/certbot
+    certbot:
+        env_file:
+            - ./certbot/.env
+        volumes:
+            - /etc/certs:/etc/letsencrypt
+            - ./certbot/www:/var/www/certbot
+        build: ./certbot
+        profiles:
+            - excluded
 networks:
     main_network:
         name: main_network
