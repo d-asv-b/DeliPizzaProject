@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { getUserProfileInfo } from "~/api/account";
 import type { UserPublicInfo } from "~/models/auth";
 
 interface AuthContextType {
@@ -16,6 +17,21 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
         if (userInfoJson) {
             setUser(JSON.parse(userInfoJson));
+        }
+        else {
+            const getInfoFromServer = async () => {
+                const profileInfo = await getUserProfileInfo();
+
+                localStorage.setItem("USER_DATA", JSON.stringify(profileInfo.userData));
+                setUser(profileInfo.userData);
+            }
+
+            getInfoFromServer()
+                .catch(
+                    (err) => {
+                        console.log(err);
+                    }
+                )
         }
     }, []);
 

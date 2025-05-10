@@ -14,7 +14,7 @@ api.interceptors.request.use(
         let accessToken = sessionStorage.getItem("ACCESS_TOKEN");
 
         if (accessToken !== null) {
-            config.headers.Authorization = `Bearer ${""}`;
+            config.headers.Authorization = `Bearer ${accessToken}`;
         }
 
         return config;

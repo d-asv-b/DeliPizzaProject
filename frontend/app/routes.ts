@@ -9,7 +9,7 @@ export default [
 
     route("signup", "routes/SignUp.tsx"),
     route("signin", "routes/SignIn.tsx"),
-    route("account", "routes/AccountSettings.tsx"),
+    route("account/*", "routes/AccountSettings.tsx"),
 
     route("cart", "routes/Cart.tsx"),
 

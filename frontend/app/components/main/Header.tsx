@@ -84,7 +84,7 @@ export default function Header() {
                                         </div>
                                         <div 
                                             className="hover:bg-popup-hover px-7 py-1"
-                                            onClick={ () => navigate("/settings") }
+                                            onClick={ () => navigate("/account") }
                                         >
                                             Настройки
                                         </div>
