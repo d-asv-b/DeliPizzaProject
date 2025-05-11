@@ -95,7 +95,7 @@ def user_sign_up_view(request: Request):
         email=reg_data.email,
         phone_number=reg_data.phone_number,
         password=reg_data.pwd_hash,
-        registration_date=timezone.now()
+        registration_date=timezone.now().date()
     )
 
     # Создаем JWT токены
@@ -216,7 +216,7 @@ def refresh_access_token(request: Request):
     # Проверяем, что refresh-токен действителен
     try:
         refresh_token = RefreshToken(refresh_token_cookie)
-    except:
+    except Exception as err:
         return Response(
             status=status.HTTP_401_UNAUTHORIZED
         )
@@ -264,7 +264,7 @@ def refresh_access_token(request: Request):
 
     response.set_cookie(
         key="REFRESH_TOKEN",
-        value=str(refresh_token),
+        value=str(new_refresh_token),
         expires=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
         httponly=True,
         path="/",

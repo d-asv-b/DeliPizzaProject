@@ -3,7 +3,7 @@ import api from ".";
 
 export async function refreshTokenPair(): Promise<RefreshTokenResponseData> {
     const { data: payload } = await api.post<RefreshTokenResponseData>(
-        "/account/refreshToken",
+        "/account/refresh_token",
     );
 
     return payload;
@@ -11,7 +11,7 @@ export async function refreshTokenPair(): Promise<RefreshTokenResponseData> {
 
 export async function authenticateUser(data: AuthRequestData): Promise<AuthResponseData> {
     const { data: payload } = await api.post<AuthResponseData>(
-        "/account/signIn",
+        "/account/sign_in",
         data
     );
 
@@ -20,7 +20,7 @@ export async function authenticateUser(data: AuthRequestData): Promise<AuthRespo
 
 export async function registerUser(data: RegRequestData): Promise<RegResponseData> {
     const { data: payload } = await api.post<RegResponseData>(
-        "/account/signUp",
+        "/account/sign_up",
         data
     );
 
