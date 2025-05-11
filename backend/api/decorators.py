@@ -27,7 +27,6 @@ def access_token_required(view):
             token = AccessToken(access_token)
             user_id = token.get("user_id")
             user_obj = User.objects.get(id=user_id)
-            print(user_obj)
         except Exception as err:
             print(err)
             return Response(
