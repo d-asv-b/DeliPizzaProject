@@ -1,3 +1,4 @@
+import type { AxiosError } from "axios";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getUserProfileInfo } from "~/api/account";
 import type { UserPublicInfo } from "~/models/auth";
@@ -13,26 +14,26 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     const [ user, setUser ] = useState<UserPublicInfo | null>(null);
     
     useEffect(() => {
-        let userInfoJson = localStorage.getItem("USER_DATA");
+        const getInfoFromServer = async () => {
+            const profileInfo = await getUserProfileInfo();
 
-        if (userInfoJson) {
-            setUser(JSON.parse(userInfoJson));
+            localStorage.setItem("USER_DATA", JSON.stringify(profileInfo.userData));
+            setUser(profileInfo.userData);
         }
-        else {
-            const getInfoFromServer = async () => {
-                const profileInfo = await getUserProfileInfo();
 
-                localStorage.setItem("USER_DATA", JSON.stringify(profileInfo.userData));
-                setUser(profileInfo.userData);
-            }
-
-            getInfoFromServer()
-                .catch(
-                    (err) => {
-                        console.log(err);
+        getInfoFromServer()
+            .catch(
+                (err: AxiosError) => {
+                    if (err.response && err.response.status === 401) {
+                        localStorage.removeItem("USER_DATA");
+                        setUser(null);
                     }
-                )
-        }
+                    else {
+                        console.log(err.cause);
+                    }
+                }
+            );
+
     }, []);
 
 
@@ -45,7 +46,6 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         else {
             localStorage.removeItem("USER_DATA");
         }
-
     }
 
     return (

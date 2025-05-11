@@ -46,7 +46,7 @@ export default function AccountSettings() {
         <div className="h-full w-full flex justify-center items-center bg-transparent">
             <div className="flex flex-row h-5/6 w-5/6 rounded-3xl bg-secondary text-text-secondary">
                 <div className="flex flex-col h-full w-fit">
-                    <div className="flex-row pt-5 pl-5">
+                    <div className="flex lex-row pt-5 pl-5">
                         <Link to={"/"}>
                             <IoArrowBack size={ 50 } color="gray"/>
                         </Link>
@@ -90,5 +90,5 @@ export default function AccountSettings() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
