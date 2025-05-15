@@ -175,3 +175,13 @@ class OrderItemIngredient(models.Model):
     """
     order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
+
+class DeliveryAddress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    city = models.CharField()
+    street = models.CharField()
+    buildingNumber = models.CharField()
+    appartmentNumber = models.IntegerField()
+    isDefault = models.BooleanField()
+    coordinates = models.CharField()
+ 

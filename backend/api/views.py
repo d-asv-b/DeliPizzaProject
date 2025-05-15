@@ -13,8 +13,8 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 
 from backend import settings
 
-from .models import RegistrationUserData, AuthorizationUserData, Pizza
-from .serializers import ProfileDataSerializer, RegistrationDataSerializer, AuthorizationDataSerializer, PizzaSerializer
+from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress
+from .serializers import ProfileDataSerializer, RegistrationDataSerializer, AuthorizationDataSerializer, PizzaSerializer, DeliveryAdressSerializer
 from .decorators import access_token_required
 
 
@@ -289,6 +289,29 @@ def get_profile_info(request: Request):
     return Response(
         {
             "user_data": user_data
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "GET" ])
+@access_token_required
+def get_delivery_address(request: Request):
+    if not hasattr(request, "user") or not (type(request.user) == User):
+        return Response(
+            {
+                "error": "Error on server. Please try again later"
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+    user_addresses = DeliveryAddress.objects.filter(user=request.user)
+    addresses = []
+    for address in user_addresses:
+        addresses.append(DeliveryAdressSerializer(address).data)
+
+    return Response(
+        {
+            "user_addresses": user_addresses
         },
         status=status.HTTP_200_OK
     )

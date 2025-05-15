@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User, RegistrationUserData, AuthorizationUserData, Ingredient, PizzaIngredient, Pizza
+from .models import User, RegistrationUserData, AuthorizationUserData, Ingredient, PizzaIngredient, Pizza, DeliveryAddress
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -56,3 +56,8 @@ class ProfileDataSerializer(serializers.ModelSerializer):
 
     def get_birthday_date(self, user_obj):
         return user_obj.birthday_date if user_obj.birthday_date else ""
+    
+class DeliveryAdressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryAddress
+        fields = ["city", "street", "buildingNumber", "appartmentNumber", "isDefault", "coordinates"]
