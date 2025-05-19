@@ -57,7 +57,7 @@ export default function AccountSettings() {
                                 <Link
                                     key={ idx }
                                     to={ `/account/${ tab.url }` }
-                                    className={ `flex flex-row grow first:rounded-tl-2xl not-first:border-t-1 items-center gap-2 py-2 pl-2 pr-5 cursor-pointer border-gray-300 ${ idx === activeTab ? "text-blue-700 bg-gray-100" : "" }` }
+                                    className={ `flex flex-row grow first:rounded-tl-2xl not-first:border-t-1 items-center gap-2 py-2 pl-2 pr-5 cursor-pointer border-gray-300 ${ idx === activeTab ? "text-sidebar-item-text-selected bg-sidebar-item-selected" : "text-sidebar-item-text" }` }
                                     onClick={ 
                                         () => setActiveTab(idx)
                                     }

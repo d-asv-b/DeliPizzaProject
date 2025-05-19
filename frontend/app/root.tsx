@@ -12,6 +12,7 @@ import { AppThemeProvider } from "./contexts/AppThemeContext";
 import PageContainer from "./PageContainer";
 import { Toaster } from "react-hot-toast";
 import { AuthContextProvider } from "./contexts/AuthContext";
+import { ModalProvider } from "./contexts/ModalHost";
 
 export function Layout({ children }: { children: React.ReactNode }) {
     return (
@@ -29,10 +30,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <AppThemeProvider>
                     <PizzaListProvider>
                         <AuthContextProvider>
-                            <PageContainer>
-                                <Toaster position="top-center"/>
-                                {children}
-                            </PageContainer>
+                            <ModalProvider>
+                                <PageContainer>
+                                    <Toaster position="top-center"/>
+                                    <div id="modal-root"></div>
+                                    {children}
+                                </PageContainer>
+                            </ModalProvider>
                         </AuthContextProvider>
                     </PizzaListProvider>
                 </AppThemeProvider>

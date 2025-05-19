@@ -2,13 +2,16 @@ import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { ImSpinner4 } from "react-icons/im";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, redirect, useNavigate, useSearchParams } from "react-router";
 import { authenticateUser } from "~/api/auth";
 import InputField from "~/components/auth/InputField";
 import { useAuthContext } from "~/contexts/AuthContext";
 import useForm from "~/hooks/useForm";
 import createSHA512Hash from "~/utils/hash";
+import { checkAuthenticated } from "~/utils/loaderHelpers";
 import { validateEmail, validatePasswordAuth } from "~/utils/validators";
+
+
 
 export default function SignInPage() {
     const { values, errors, handleFieldChange, validateForm } = useForm(
@@ -24,19 +27,12 @@ export default function SignInPage() {
         }
     );
 
-    let { user, setUserData } = useAuthContext();
+    let { user, isLoading, setUserData } = useAuthContext();
 
     let [searchParams] = useSearchParams();
     let navigate = useNavigate();
 
     let [ btnIsDisabled, setBtnDisabled ] = useState(false);
-
-    useEffect(() => {
-        // Если пользователь уже авторизован, перенаправляем его обратно
-        if (user) {
-            navigate(searchParams.get("dst") || "/");
-        }
-    }, []);
 
     async function submitForm() {
         if (!validateForm()) {
@@ -79,6 +75,10 @@ export default function SignInPage() {
 
             setBtnDisabled(false);
         }
+    }
+
+    if (isLoading) {
+        return null;
     }
 
     return (

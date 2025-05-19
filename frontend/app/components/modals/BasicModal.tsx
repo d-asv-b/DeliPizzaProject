@@ -4,11 +4,12 @@ import { IoClose } from "react-icons/io5";
 type BasicModalProps = {
     isOpen: boolean;
     title: string;
+    minWidth?: number;
     children: ReactNode;
     onClose: () => void;
 }
 
-export default function BasicModalWindow({ isOpen, title, children, onClose }: BasicModalProps) {
+export default function BasicModalWindow({ isOpen, title, minWidth = 72, children, onClose }: BasicModalProps) {
     useEffect(
         () => {
             const handleEsc = (e: KeyboardEvent) => {
@@ -34,20 +35,20 @@ export default function BasicModalWindow({ isOpen, title, children, onClose }: B
 
     return (
         <div className="fixed inset-0 h-full w-full flex items-center justify-center backdrop-blur-xs">
-            <div className="h-fit min-w-72 max-w-1/2 p-5 rounded-xl bg-white text-text-secondary">
+            <div className={ `h-fit min-w-1/4 w-fit p-5 rounded-xl bg-main text-text-secondary` }>
                 <div className="flex flex-row">
                     <div className="flex-col grow content-center text-2xl text-semibold pr-5">
                         { title }
                     </div>
                     <button 
-                        className="hover:cursor-pointer border-l-1 border-gray-400 m-1 p-2"
+                        className="hover:cursor-pointer pl-2"
                         onClick={() => onClose()}    
                     >
                         <IoClose size={25} className="text-red-500"/>
                     </button>
                 </div>
                 <div
-                    className="flex flex-row pt-2"
+                    className="flex flex-row border-t-1 border-gray-500 mt-2 pt-2 justify-center"
                 >
                     { children }
                 </div>

@@ -2,9 +2,11 @@ import type { AxiosError } from "axios";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getUserProfileInfo } from "~/api/account";
 import type { UserPublicInfo } from "~/models/auth";
+import { clearAuthData, getUserDataRequestPromise, initializeAuth, setAuthData } from "~/utils/AuthService";
 
 interface AuthContextType {
     user: UserPublicInfo | null;
+    isLoading: boolean;
     setUserData: (user: UserPublicInfo) => void
 }
 
@@ -12,28 +14,25 @@ export const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     const [ user, setUser ] = useState<UserPublicInfo | null>(null);
+    const [ isLoading, setIsLoading ] = useState<boolean>(false);
     
     useEffect(() => {
-        const getInfoFromServer = async () => {
-            const profileInfo = await getUserProfileInfo();
+        const performAuthInit = async () => {
+            let initPromise = getUserDataRequestPromise();
+            if (!initPromise) {
+                initPromise = initializeAuth();
+            }
 
-            localStorage.setItem("USER_DATA", JSON.stringify(profileInfo.userData));
-            setUser(profileInfo.userData);
+            initPromise.then((userInfo) => {
+                setUser(userInfo);
+                setIsLoading(false);
+            }).catch(() => {
+                setUser(null);
+                setIsLoading(false);
+            });
         }
 
-        getInfoFromServer()
-            .catch(
-                (err: AxiosError) => {
-                    if (err.response && err.response.status === 401) {
-                        localStorage.removeItem("USER_DATA");
-                        setUser(null);
-                    }
-                    else {
-                        console.log(err.cause);
-                    }
-                }
-            );
-
+       performAuthInit();
     }, []);
 
 
@@ -41,15 +40,17 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         setUser(userData);
         
         if (userData) {
+             setAuthData(userData)
             localStorage.setItem("USER_DATA", JSON.stringify(userData));
         }
         else {
+            clearAuthData();
             localStorage.removeItem("USER_DATA");
         }
     }
 
     return (
-        <AuthContext.Provider value={{ user, setUserData }}>
+        <AuthContext.Provider value={{ user, isLoading, setUserData }}>
             {children}
         </AuthContext.Provider>
     )

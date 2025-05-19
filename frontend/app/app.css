@@ -42,6 +42,10 @@
     --color-secondary: #FFF4D5;
     --color-text-secondary: #000;
 
+    --color-sidebar-item-selected: #e6d8b3;  
+    --color-sidebar-item-text: #5e5e5e;
+    --color-sidebar-item-text-selected: #000;
+
     --color-switch-background: #FFE55F;
     --color-switch-circle: #88CC30;
     --color-switch-icon: #FAFF00;
@@ -74,6 +78,10 @@
 
     --color-secondary: #063438;
     --color-text-secondary: #fff;
+
+    --color-sidebar-item-selected: #042d30; 
+    --color-sidebar-item-text: #ababab;
+    --color-sidebar-item-text-selected: #fff;
 
     --color-switch-background: #A6A6A6;
     --color-switch-circle: #000;
