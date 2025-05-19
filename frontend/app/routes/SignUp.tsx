@@ -49,13 +49,6 @@ export default function SignUpPage() {
 
     let [ btnIsDisabled, setBtnDisabled ] = useState(false);
 
-    useEffect(() => {
-        // Если пользователь уже авторизован, перенаправляем его обратно
-        if (user) {
-            navigate(searchParams.get("dst") || "/");
-        }
-    }, []);
-
     async function submitForm() {
         if (!validateForm()) {
             return;
