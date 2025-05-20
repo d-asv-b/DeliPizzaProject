@@ -12,7 +12,7 @@ export async function getUserProfileInfo(): Promise<UserProfileInfoResponse> {
 
 export async function updateUserData(
     data: UpdateUserDataRequest
-): Promise<UserPublicInfo> {
+): Promise<UserProfileInfoResponse> {
     const { data: payload } = await api.patch(
         "/account/update_data",
         data
@@ -25,7 +25,7 @@ export async function updateUserPassword(
     data: UpdateUserPwdRequest
 ): Promise<UserPublicInfo> {
     const { data: payload } = await api.patch(
-        "/account/Update_password",
+        "/account/update_password",
         data
     );
 
