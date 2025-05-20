@@ -14,7 +14,9 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from backend import settings
 
 from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress
-from .serializers import ProfileDataSerializer, RegistrationDataSerializer, AuthorizationDataSerializer, PizzaSerializer, DeliveryAdressSerializer
+from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
+    AuthorizationDataSerializer, PizzaSerializer, DeliveryAdressSerializer, \
+    UserDataUpdateSerializer, PasswordUpdateSerializer
 from .decorators import access_token_required
 
 
@@ -276,11 +278,9 @@ def refresh_access_token(request: Request):
 @api_view([ "GET" ])
 @access_token_required
 def get_profile_info(request: Request):
-    if not hasattr(request, "user") or not (type(request.user) == User):
+    if not isinstance(request.user, User):
         return Response(
-            {
-                "error": "Error on server. Please try again later"
-            },
+            {"error": "Error on server. Please try again later"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -296,11 +296,9 @@ def get_profile_info(request: Request):
 @api_view([ "GET" ])
 @access_token_required
 def get_delivery_address(request: Request):
-    if not hasattr(request, "user") or not (type(request.user) == User):
+    if not isinstance(request.user, User):
         return Response(
-            {
-                "error": "Error on server. Please try again later"
-            },
+            {"error": "Error on server. Please try again later"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -315,3 +313,52 @@ def get_delivery_address(request: Request):
         },
         status=status.HTTP_200_OK
     )
+
+@api_view([ "PATCH" ])
+@access_token_required
+def update_user_data(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    serializer = UserDataUpdateSerializer(instance=request.user, data=request.data, partial=True)
+
+    if not serializer.is_valid():
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    serializer.save()
+    return Response(
+        {
+            "user_data": ProfileDataSerializer(request.user).data,
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "PATCH" ])
+@access_token_required
+def update_user_password(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    serializer = PasswordUpdateSerializer(instance=request.user, data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    serializer.save()
+    return Response(
+        {
+            "user_data": ProfileDataSerializer(request.user).data,
+        },
+        status=status.HTTP_200_OK
+    )
+
+    
