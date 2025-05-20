@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios"
 import { refreshTokenPair } from "./auth";
 
 const api = axios.create({
-    baseURL: "http://localhost:8000/api/",
+    baseURL: "/api/",
     withCredentials: true,
     headers: {
         "Content-Type": "application/json",
@@ -66,7 +66,7 @@ api.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                let accessToken = (await refreshTokenPair()).accessToken;
+                let accessToken = (await refreshTokenPair());
                 sessionStorage.setItem("ACCESS_TOKEN", accessToken);
                 processRequestQueue(null);
 

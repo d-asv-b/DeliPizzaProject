@@ -1,8 +1,8 @@
-import type { PizzaListRequestData, PizzaListResponseData } from "~/models/pizza";
+import type { Pizza, PizzaListRequestData, PizzaListResponseData } from "~/models/pizza";
 import api from ".";
 
-export async function getPizzaList(data: PizzaListRequestData): Promise<PizzaListResponseData> {
-    const { data: payload } = await api.get<PizzaListResponseData>(
+export async function getPizzaList(data: PizzaListRequestData): Promise<Pizza[]> {
+    const response = await api.get<null, PizzaListResponseData>(
         "/pizzas/get_list",
         {
             params: {
@@ -11,5 +11,6 @@ export async function getPizzaList(data: PizzaListRequestData): Promise<PizzaLis
             }
         }
     );
-    return payload;
+    
+    return response.pizzaData;
 }
