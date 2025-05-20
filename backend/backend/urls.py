@@ -1,23 +1,25 @@
-"""
-URL configuration for backend project.
+from django.urls import path
+from . import views
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.contrib import admin
-from django.urls import path, include
+from .views import user_sign_up_view, user_sign_in_view, \
+    get_profile_info, refresh_access_token, get_delivery_address, \
+    update_user_data, update_user_password, \
+    PizzaListViewSet
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path("api/", include("api.urls"))
+    path("pizzas/get_list/", PizzaListViewSet.as_view()),
+
+    path("account/sign_up", user_sign_up_view),
+    path("account/sign_in", user_sign_in_view),
+    path("account/refresh_token", refresh_access_token),
+
+    path("account/profile", get_profile_info),
+    path("account/update_data", update_user_data),
+    path("account/update_password", update_user_password),
+
+    path("addresses/get_list", get_delivery_address),
+    path("orders/<str:order_id>/status", views.get_order_status, name="order-status"),
+    # path("addresses/add_address", ),
+    # path("addresses/edit_address", ),
+    # path("addresses/delete_address", ),
 ]
