@@ -7,6 +7,7 @@ import { PasswordEditModal } from "../modals/PasswordEditModal";
 import { updateUserData, updateUserPassword } from "~/api/account";
 import { AxiosError } from "axios";
 import type { UpdateUserDataRequest } from "~/models/account";
+import createSHA512Hash from "~/utils/hash";
 
 const fieldSettings: FieldSetting[] = [
     { title: "Имя", key: "name", label: "Введите новое имя", validate: validateName },
@@ -56,7 +57,7 @@ export default function AccountSettingsTab() {
                             } as UpdateUserDataRequest
                         );
 
-                        setUserData(result);
+                        setUserData(result.userData);
                         close(id);
                         
                         return null;
@@ -80,11 +81,14 @@ export default function AccountSettingsTab() {
                 isOpen={ true }
                 onClose={ () => close(id) }
                 onSave={ async (oldPwd, newPwd) => {
+                    let oldPwdHash = await createSHA512Hash(oldPwd);
+                    let newPwdHash = await createSHA512Hash(newPwd);
+
                     try {
                         let result = await updateUserPassword(
                             {
-                                oldPassword: oldPwd,
-                                newPassword: newPwd
+                                oldPassword: oldPwdHash,
+                                newPassword: newPwdHash
                             }
                         );
 
