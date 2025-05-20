@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from djangorestframework_camel_case.util import camel_to_underscore
+
 from .models import User, RegistrationUserData, AuthorizationUserData, Ingredient, PizzaIngredient, Pizza, DeliveryAddress
 
 
@@ -57,7 +59,58 @@ class ProfileDataSerializer(serializers.ModelSerializer):
     def get_birthday_date(self, user_obj):
         return user_obj.birthday_date if user_obj.birthday_date else ""
     
+
 class DeliveryAdressSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryAddress
         fields = ["city", "street", "buildingNumber", "appartmentNumber", "isDefault", "coordinates"]
+
+
+class UserDataUpdateSerializer(serializers.ModelSerializer):
+    field_name = serializers.ChoiceField(choices=["email", "phoneNumber", "name", "birthdayDate"], write_only=True)
+
+    class Meta:
+        model = User
+        fields = [ "field_name", "name", "email", "phone_number", "birthday_date" ]
+
+    def validate(self, data):
+        field_to_update = data.get("field_name")
+        new_value = data.get(camel_to_underscore(field_to_update))
+
+        if new_value is None:
+            return serializers.ValidationError({ field_to_update: "Должно быть указано изменяемое поле" })
+        
+        return data
+    
+    def update(self, instance: User, validated_data):
+        field = validated_data["field_name"]
+        value = validated_data[camel_to_underscore(field)]
+
+        setattr(instance, camel_to_underscore(field), value)
+        instance.save()
+
+        return instance
+
+class PasswordUpdateSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+
+    def validate_old_password(self, value):
+        if not self.instance.check_password(value):
+            raise serializers.ValidationError("Неправильный пароль.")
+        
+        return value
+
+    def validate_new_password(self, value):
+        if len(value) != 128:
+            raise serializers.ValidationError("Неправильные параметры запроса.")
+        
+        return value
+
+    def update(self, instance: User, validated_data):
+        new_password = validated_data["new_password"]
+
+        instance.set_password(new_password)
+        instance.save()
+
+        return instance
