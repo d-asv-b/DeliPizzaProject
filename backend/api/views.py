@@ -14,8 +14,8 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from backend import settings
 from datetime import timedelta
 
-from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress, \
-    Order, OrderItem, OrderItemIngredient, Ingredient
+from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress
+from .models import Order, OrderItem, OrderItemIngredient, Pizza, Ingredient
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAdressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer
@@ -363,90 +363,24 @@ def update_user_password(request: Request):
         status=status.HTTP_200_OK
     )
 
-@api_view([ "GET" ])
+@api_view(["GET"])
 @access_token_required
 def get_orders_history(request: Request):
-    if not isinstance(request.user, User):
-        return Response(
-            {"error": "Ошибка сервера. Попробуйте позже."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    """
+    История всех заказов текущего пользователя.
 
-    user_orders = (
+    URL:   /api/orders/history
+    Ответ: { "orders": [ ... ] }
+    """
+    orders_qs = (
         Order.objects
-        .filter(customer=request.user)
-        .order_by("-creation_date")
-        .prefetch_related(
-            "orderitem_set__pizza",
-            "orderitem_set__orderitemingredient_set__ingredient",
-        )
+             .filter(customer=request.user)
+             .order_by("-creation_date")
+             .prefetch_related(
+                "orderitem_set__pizza",
+                "orderitem_set__orderitemingredient_set__ingredient",
+             )
     )
 
-    orders_payload = []
-    for order in user_orders:
-        if order.is_completed:
-            status_text = "completed"
-        elif order.is_paid:
-            status_text = "paid"
-        else:
-            status_text = "created"
-
-        total = 0
-        for item in order.orderitem_set.all():
-            total += item.pizza.base_price
-            for add in item.orderitemingredient_set.all():
-                total += add.ingredient.price
-
-        orders_payload.append({
-            "order_id":      order.id,
-            "status":        status_text,
-            "is_paid":       order.is_paid,
-            "is_completed":  order.is_completed,
-            "creation_date": order.creation_date,
-            "amount":        total,
-        })
-
-    return Response({"orders": orders_payload}, status=status.HTTP_200_OK)
-
-@api_view([ "GET" ])
-@access_token_required
-def get_order_status(request: Request, order_id: str):
-    try:
-        order = Order.objects.get(id=order_id, customer=request.user)
-    except Order.DoesNotExist:
-        return Response(
-            {"error": "Заказ не найден."},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    except Exception:
-        return Response(
-            {"error": "Error on server. Please try again later"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-    if order.is_completed:
-        status_text = "completed"
-    elif order.is_paid:
-        status_text = "paid"
-    else:
-        status_text = "created"
-
-    delivery_time = None
-    if hasattr(order, "expected_delivery_at") and order.expected_delivery_at:
-        delivery_time = order.expected_delivery_at
-    elif hasattr(order, "delivered_at") and order.delivered_at:
-        delivery_time = order.delivered_at
-    else:
-        if order.is_paid and not order.is_completed:
-            delivery_time = order.creation_date + timedelta(hours=1)
-
-    return Response(
-        {
-            "order_id": order.id,
-            "status": status_text,
-            "is_paid": order.is_paid,
-            "is_completed": order.is_completed,
-            "delivery_time": delivery_time
-        },
-        status=status.HTTP_200_OK
-    )
+    serializer = OrderHistorySerializer(orders_qs, many=True)
+    return Response({"orders": serializer.data}, status=status.HTTP_200_OK)
