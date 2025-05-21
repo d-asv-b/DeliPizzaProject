@@ -12,13 +12,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 from backend import settings
+from datetime import timedelta
 
 from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress
-from .models import Order
-from datetime import timedelta
+from .models import Order, OrderItem, OrderItemIngredient, Pizza, Ingredient
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAdressSerializer, \
-    UserDataUpdateSerializer, PasswordUpdateSerializer
+    UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer
 from .decorators import access_token_required
 
 
@@ -365,6 +365,28 @@ def update_user_password(request: Request):
 
 @api_view(["GET"])
 @access_token_required
+def get_orders_history(request: Request):
+    """
+    История всех заказов текущего пользователя.
+
+    URL:   /api/orders/history
+    Ответ: { "orders": [ ... ] }
+    """
+    orders_qs = (
+        Order.objects
+             .filter(customer=request.user)
+             .order_by("-creation_date")
+             .prefetch_related(
+                "orderitem_set__pizza",
+                "orderitem_set__orderitemingredient_set__ingredient",
+             )
+    )
+
+    serializer = OrderHistorySerializer(orders_qs, many=True)
+    return Response({"orders": serializer.data}, status=status.HTTP_200_OK)
+
+@api_view([ "GET" ])
+@access_token_required
 def get_order_status(request: Request, order_id: str):
     try:
         order = Order.objects.get(id=order_id, customer=request.user)
@@ -405,4 +427,3 @@ def get_order_status(request: Request, order_id: str):
         },
         status=status.HTTP_200_OK
     )
-
