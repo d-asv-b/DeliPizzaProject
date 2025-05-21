@@ -370,13 +370,12 @@ def get_order_status(request: Request, order_id: str):
         order = Order.objects.get(id=order_id, customer=request.user)
     except Order.DoesNotExist:
         return Response(
-            {"error": "Order not found."},
+            {"error": "Заказ не найден."},
             status=status.HTTP_404_NOT_FOUND
         )
-
     except Exception:
         return Response(
-            {"error": "Server Error. Try later"},
+            {"error": "Error on server. Please try again later"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
