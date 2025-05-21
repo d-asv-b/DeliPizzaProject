@@ -2,8 +2,9 @@ from rest_framework import serializers
 
 from djangorestframework_camel_case.util import camel_to_underscore
 
-from .models import User, RegistrationUserData, AuthorizationUserData, Ingredient, PizzaIngredient, Pizza, DeliveryAddress
+from .models import User, RegistrationUserData, AuthorizationUserData, Ingredient, PizzaIngredient, Pizza, DeliveryAddress, Order
 
+from datetime import timedelta
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -114,3 +115,26 @@ class PasswordUpdateSerializer(serializers.Serializer):
         instance.save()
 
         return instance
+
+class OrderHistorySerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = Order
+        fields = ["id", "status", "is_paid", "is_completed", "creation_date", "amount"]
+
+    def get_status(self, obj: Order) -> str:
+        if obj.is_completed:
+            return "completed"
+        if obj.is_paid:
+            return "paid"
+        return "created"
+
+    def get_amount(self, obj: Order) -> int:
+        total = 0
+        for item in obj.orderitem_set.all():
+            total += item.pizza.base_price
+            for add in item.orderitemingredient_set.all():
+                total += add.ingredient.price
+        return total

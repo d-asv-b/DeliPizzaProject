@@ -18,7 +18,7 @@ from .models import RegistrationUserData, AuthorizationUserData, Pizza, Delivery
 from .models import Order, OrderItem, OrderItemIngredient, Pizza, Ingredient
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAdressSerializer, \
-    UserDataUpdateSerializer, PasswordUpdateSerializer
+    UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer
 from .decorators import access_token_required
 
 
