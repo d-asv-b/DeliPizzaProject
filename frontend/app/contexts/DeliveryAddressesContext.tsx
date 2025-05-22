@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getUserDeliveryAddresses } from "~/api/addresses";
 import type { DeliveryAddress } from "~/models/addresses";
@@ -18,9 +19,20 @@ export const DeliveryAddressContextProvider = ({ children }: {children : ReactNo
                 const addresesList = await getUserDeliveryAddresses();
                 return addresesList
             }
-            catch (e) {
-                console.error(e);
-                return []
+            catch (error) {
+                if (error instanceof AxiosError && error.response) {
+                    if (error.response.data.error) {
+                        console.error(error.response.data.error);
+                    }
+                    else {
+                        console.error(error.message);
+                    }
+                }
+                else {
+                    console.error("Что-то пошло не так :(");
+                }
+
+                return [];
             }
         }
 

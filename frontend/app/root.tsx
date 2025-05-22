@@ -14,6 +14,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthContextProvider } from "./contexts/AuthContext";
 import { ModalProvider } from "./contexts/ModalHost";
 import { DeliveryAddressContextProvider } from "./contexts/DeliveryAddressesContext";
+import { PaymentMethodsContext, PaymentMethodsContextProvide } from "./contexts/PaymentMethodsContexts";
 
 export function Layout({ children }: { children: React.ReactNode }) {
     return (
@@ -31,15 +32,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <AppThemeProvider>
                     <PizzaListProvider>
                         <AuthContextProvider>
-                            <DeliveryAddressContextProvider>
-                                <ModalProvider>
-                                    <PageContainer>
-                                        <Toaster position="top-center"/>
-                                        <div id="modal-root"></div>
-                                        {children}
-                                    </PageContainer>
-                                </ModalProvider>
-                            </DeliveryAddressContextProvider>
+                            <PaymentMethodsContextProvide>
+                                <DeliveryAddressContextProvider>
+                                    <ModalProvider>
+                                        <PageContainer>
+                                            <Toaster position="top-center"/>
+                                            <div id="modal-root"></div>
+                                            {children}
+                                        </PageContainer>
+                                    </ModalProvider>
+                                </DeliveryAddressContextProvider>
+                            </PaymentMethodsContextProvide>
                         </AuthContextProvider>
                     </PizzaListProvider>
                 </AppThemeProvider>

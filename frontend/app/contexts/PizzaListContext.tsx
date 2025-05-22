@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getPizzaList } from "~/api/pizza";
 import type { Pizza } from "~/models/pizza";
@@ -19,8 +20,18 @@ export const PizzaListProvider = ({ children }: { children: ReactNode }) => {
                 let response = await getPizzaList({});
                 setPizzaList(response);
             }
-            catch (e) {
-                console.error(e);
+            catch (error) {
+                if (error instanceof AxiosError && error.response) {
+                    if (error.response.data.error) {
+                        console.error(error.response.data.error);
+                    }
+                    else {
+                        console.error(error.message);
+                    }
+                }
+                else {
+                    console.error("Что-то пошло не так :(");
+                }
             }
             finally {
                 setLoadingState(false);

@@ -33,10 +33,10 @@ export interface DeleteDeliveryAddressRequest {
 export interface GeocodeResolveAddressRequest {
     lat: number;
     lon: number;
-}
+};
 
 export interface GeocodeResolveAddressResponse {
     city: string;
     street: string;
     buildingNumber: string;
-}
+};
