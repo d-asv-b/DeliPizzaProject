@@ -14,9 +14,10 @@ urlpatterns = [
     path("account/update_password", views.update_user_password),
 
     path("addresses/get_list", views.get_delivery_address),
-    # path("addresses/add_address", ),
-    # path("addresses/edit_address", ),
-    # path("addresses/delete_address", ),
+    path("addresses/add_address", views.add_delivery_address),
+    path("addresses/edit_address", views.edit_delivery_address),
+    path("addresses/delete_address", views.remove_delivery_address),
+    path("addresses/resolve_address", views.geocode_address),
 
     path("payments/get_methods", views.get_payment_methods),
     path("payments/add_method", views.add_payment_method),
