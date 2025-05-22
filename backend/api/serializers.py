@@ -207,7 +207,7 @@ class PasswordUpdateSerializer(serializers.ModelSerializer):
 
         return instance
 
-      
+
 class PaymentMethodSerializer(serializers.ModelSerializer):
     expiry_date = serializers.CharField(write_only=True, required=True)
 

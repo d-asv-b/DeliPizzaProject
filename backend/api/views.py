@@ -20,7 +20,7 @@ from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
     PaymentMethodSerializer, EditDeliveryAddressSerializer
-  
+
 from .decorators import access_token_required
 
 import requests
