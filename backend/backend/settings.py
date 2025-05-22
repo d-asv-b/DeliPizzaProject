@@ -19,6 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(find_dotenv())
 
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+YANDEX_MAPS_API_KEY = os.environ["YANDEX_MAPS_API_KEY"]
 DEBUG = (os.environ["IS_DEBUG"] == "True")
 
 hostnames = [hostname for hostname in os.environ["HOSTNAMES"].split(",") if hostname]
