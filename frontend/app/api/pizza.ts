@@ -2,7 +2,7 @@ import type { Pizza, PizzaListRequestData, PizzaListResponseData } from "~/model
 import api from ".";
 
 export async function getPizzaList(data: PizzaListRequestData): Promise<Pizza[]> {
-    const response = await api.get<null, PizzaListResponseData>(
+    const response = await api.get<PizzaListResponseData>(
         "/pizzas/get_list",
         {
             params: {
@@ -12,5 +12,5 @@ export async function getPizzaList(data: PizzaListRequestData): Promise<Pizza[]>
         }
     );
     
-    return response.pizzaData;
+    return response.data.pizzaData;
 }

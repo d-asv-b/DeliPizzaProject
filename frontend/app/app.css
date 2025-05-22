@@ -32,6 +32,7 @@
     --color-primary: #E48525;
     --color-text-primary: #000;
 
+    --color-btn-primary-disabled: #915f2c;
     --color-btn-primary-hover: #f29f4b;
     --color-btn-primary-click: #faad5f;
 
@@ -69,6 +70,7 @@
     --color-primary: #0ba13d;
     --color-text-primary: #000;
 
+    --color-btn-primary-disabled: #277541;
     --color-btn-primary-hover: #0a6b2a;
     --color-btn-primary-click: #084d1e;
 

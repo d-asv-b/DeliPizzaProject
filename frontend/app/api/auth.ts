@@ -2,27 +2,27 @@ import type { AuthRequestData, AuthResponseData, RefreshTokenResponseData, RegRe
 import api from ".";
 
 export async function refreshTokenPair(): Promise<string> {
-    const response = await api.post<null, RefreshTokenResponseData>(
+    const response = await api.post<RefreshTokenResponseData>(
         "/account/refresh_token",
     );
 
-    return response.accessToken;
+    return response.data.accessToken;
 }
 
 export async function authenticateUser(data: AuthRequestData): Promise<AuthResponseData> {
-    const response = await api.post<AuthRequestData, AuthResponseData>(
+    const response = await api.post<AuthResponseData>(
         "/account/sign_in",
         data
     );
 
-    return response;
+    return response.data;
 }
 
 export async function registerUser(data: RegRequestData): Promise<RegResponseData> {
-    const response = await api.post<RegRequestData, RegResponseData>(
+    const response = await api.post<RegResponseData>(
         "/account/sign_up",
         data
     );
 
-    return response;
+    return response.data;
 }

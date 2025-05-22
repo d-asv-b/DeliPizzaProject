@@ -17,10 +17,10 @@ export const PizzaListProvider = ({ children }: { children: ReactNode }) => {
         const fetchPizzaList = async () => {            
             try {
                 let response = await getPizzaList({});
-                setPizzaList(response.pizzaData);
+                setPizzaList(response);
             }
             catch (e) {
-                console.log(e);
+                console.error(e);
             }
             finally {
                 setLoadingState(false);

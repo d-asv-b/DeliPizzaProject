@@ -3,31 +3,31 @@ import api from ".";
 import type { UserPublicInfo } from "~/models/auth";
 
 export async function getUserProfileInfo(): Promise<UserPublicInfo> {
-    const response = await api.get<null, UserProfileInfoResponse>(
+    const response = await api.get<UserProfileInfoResponse>(
         "/account/profile"
     );
 
-    return response.userData;
+    return response.data.userData;
 }
 
 export async function updateUserData(
     data: UpdateUserDataRequest
 ): Promise<UserPublicInfo> {
-    const response = await api.patch<UpdateUserDataRequest, UserProfileInfoResponse>(
+    const response = await api.patch<UserProfileInfoResponse>(
         "/account/update_data",
         data
     );
 
-    return response.userData;
+    return response.data.userData;
 }
 
 export async function updateUserPassword(
     data: UpdateUserPwdRequest
 ): Promise<UserPublicInfo> {
-    const response = await api.patch<UpdateUserPwdRequest, UserProfileInfoResponse>(
+    const response = await api.patch<UserProfileInfoResponse>(
         "/account/update_password",
         data
     );
 
-    return response.userData;
+    return response.data.userData;
 }

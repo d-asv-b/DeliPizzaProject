@@ -1,8 +1,8 @@
 export interface DeliveryAddressRequest {
     city: string;
     street: string;
-    building: string;
-    room: string;
+    buildingNumber: string;
+    appartmentNumber: string;
 };
 
 export interface EditDeliveryAddressRequest {
@@ -11,17 +11,32 @@ export interface EditDeliveryAddressRequest {
 };
 
 export interface DeliveryAddress {
+    id?: string;
     city: string;
     street: string;
-    building: string;
-    room: string;
+    buildingNumber: string;
+    appartmentNumber: string;
+    entranceNumber: string;
+    intercom: string;
+    comment: string
     coordinates: string;
 };
 
 export interface DeliveryAddressesResponse {
-    deliveryAddresses: DeliveryAddress[];
+    userAddresses: DeliveryAddress[];
 };
 
 export interface DeleteDeliveryAddressRequest {
     addressId: string;
 };
+
+export interface GeocodeResolveAddressRequest {
+    lat: number;
+    lon: number;
+}
+
+export interface GeocodeResolveAddressResponse {
+    city: string;
+    street: string;
+    buildingNumber: string;
+}
