@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views
 
 from . import views as views
 
@@ -21,5 +22,7 @@ urlpatterns = [
 
     path("payments/get_methods", views.get_payment_methods),
     path("payments/add_method", views.add_payment_method),
-    path("payments/remove_method", views.remove_payment_method)
+    path("payments/remove_method", views.remove_payment_method),
+  
+    path("orders/history", views.get_orders_history, name="orders-history")
 ]
