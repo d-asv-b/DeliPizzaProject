@@ -13,9 +13,9 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 
 from backend import settings
 
-from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress
-from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
-    AuthorizationDataSerializer, PizzaSerializer, DeliveryAdressSerializer, \
+from .models import PaymentMethod, RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress
+from .serializers import PaymentMethodSerializer, ProfileDataSerializer, RegistrationDataSerializer, \
+    AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer
 from .decorators import access_token_required
 
@@ -305,11 +305,11 @@ def get_delivery_address(request: Request):
     user_addresses = DeliveryAddress.objects.filter(user=request.user)
     addresses = []
     for address in user_addresses:
-        addresses.append(DeliveryAdressSerializer(address).data)
+        addresses.append(DeliveryAddressSerializer(address).data)
 
     return Response(
         {
-            "user_addresses": user_addresses
+            "user_addresses": addresses
         },
         status=status.HTTP_200_OK
     )
@@ -361,4 +361,88 @@ def update_user_password(request: Request):
         status=status.HTTP_200_OK
     )
 
+@api_view([ "GET" ])
+@access_token_required
+def get_payment_methods(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
+    methods = PaymentMethod.objects.filter(user=request.user)
+    return Response(
+        {
+            "payment_methods": PaymentMethodSerializer(methods, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "POST" ])
+@access_token_required
+def add_payment_method(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    serializer = PaymentMethodSerializer(
+        data=request.data,
+        context={"user": request.user}
+    )
+
+    if not serializer.is_valid():
+        return Response(
+            {
+                "error": serializer.errors[0]
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    serializer.save()
+
+    methods = PaymentMethod.objects.filter(user=request.user)
+    return Response(
+        {
+            "payment_methods": PaymentMethodSerializer(methods, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+    
+@api_view([ "DELETE" ])
+@access_token_required
+def remove_payment_method(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    method_id = request.query_params.get("method_id")
+    if not method_id:
+        return Response(
+            {
+                "error": "Необходим параметр methodId."
+            }, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        method = PaymentMethod.objects.get(id=int(method_id), user=request.user)
+        method.delete()
+    except PaymentMethod.DoesNotExist:
+        return Response(
+            {
+                "error": "Такого метода оплаты не существует."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    methods = PaymentMethod.objects.filter(user=request.user)
+    return Response(
+        {
+            "payment_methods": PaymentMethodSerializer(methods, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )

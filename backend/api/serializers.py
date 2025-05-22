@@ -2,7 +2,10 @@ from rest_framework import serializers
 
 from djangorestframework_camel_case.util import camel_to_underscore
 
-from .models import User, RegistrationUserData, AuthorizationUserData, Ingredient, PizzaIngredient, Pizza, DeliveryAddress
+from .models import User, RegistrationUserData, AuthorizationUserData, \
+    Ingredient, PizzaIngredient, Pizza, DeliveryAddress, PaymentMethod
+
+from datetime import datetime
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -60,10 +63,10 @@ class ProfileDataSerializer(serializers.ModelSerializer):
         return user_obj.birthday_date if user_obj.birthday_date else ""
     
 
-class DeliveryAdressSerializer(serializers.ModelSerializer):
+class DeliveryAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryAddress
-        fields = ["city", "street", "buildingNumber", "appartmentNumber", "isDefault", "coordinates"]
+        fields = ["city", "street", "building_number", "appartment_number", "entrance_number", "intercom", "comment", "is_default", "coordinates"]
 
 
 class UserDataUpdateSerializer(serializers.ModelSerializer):
@@ -91,7 +94,8 @@ class UserDataUpdateSerializer(serializers.ModelSerializer):
 
         return instance
 
-class PasswordUpdateSerializer(serializers.Serializer):
+
+class PasswordUpdateSerializer(serializers.ModelSerializer):
     old_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True)
 
@@ -114,3 +118,35 @@ class PasswordUpdateSerializer(serializers.Serializer):
         instance.save()
 
         return instance
+    
+
+class PaymentMethodSerializer(serializers.ModelSerializer):
+    expiry_date = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = PaymentMethod
+        fields = ["id", "user", "card_holder", "card_last_4_numbers", "expiry_month", "expiry_year", "added_at", "expiry_date"]
+        read_only_fields = ["id", "user", "added_at", "expiry_month", "expiry_year"]
+
+    def validate_expiry_date(self, value: str):
+        try:
+            month, year = map(int, value.split("/"))
+            if not (1 <= month <= 12):
+                raise serializers.ValidationError("Неверная срок действия карты.")
+            
+            now = datetime.now()
+            if year < (now.year % 100) or (year == (now.year % 100) and month < now.month):
+                raise serializers.ValidationError("Истёк срок действия карты.")
+
+            return {"month": month, "year": year}
+        except ValueError:
+            raise serializers.ValidationError("Срок действия карты должен быть в формате MM/YY.")
+        
+    def create(self, validated_data):
+        expiry = validated_data.pop("expiry_date")
+
+        validated_data["expiry_month"] = expiry["month"]
+        validated_data["expiry_year"] = expiry["year"]
+        validated_data["user"] = self.context["user"]
+
+        return super().create(validated_data)
