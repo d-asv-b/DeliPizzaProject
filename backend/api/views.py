@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
@@ -12,13 +13,17 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 from backend import settings
+from datetime import timedelta
 
-from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress
+from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress, PaymentMethod, Order
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
-    AuthorizationDataSerializer, PizzaSerializer, DeliveryAdressSerializer, \
-    UserDataUpdateSerializer, PasswordUpdateSerializer
+    AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
+    UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
+    PaymentMethodSerializer, EditDeliveryAddressSerializer
+
 from .decorators import access_token_required
 
+import requests
 
 User = get_user_model()
 
@@ -303,13 +308,187 @@ def get_delivery_address(request: Request):
         )
 
     user_addresses = DeliveryAddress.objects.filter(user=request.user)
-    addresses = []
-    for address in user_addresses:
-        addresses.append(DeliveryAdressSerializer(address).data)
-
     return Response(
         {
-            "user_addresses": user_addresses
+            "user_addresses": DeliveryAddressSerializer(user_addresses, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "GET" ])
+@access_token_required
+def geocode_address(request: Request):
+    lat = request.query_params.get("lat")
+    lon = request.query_params.get("lon")
+
+    if not lat or not lon:
+        return Response(
+            {
+                "error": "Отсутствуют координаты."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    response = requests.get("https://geocode-maps.yandex.ru/v1/", params={
+        "apikey": settings.YANDEX_MAPS_API_KEY,
+        "format": "json",
+        "geocode": f"{lon},{lat}",
+        "lang": "ru_RU",
+    })
+
+    geo_data = response.json()
+    try:
+        components = (
+            geo_data["response"]["GeoObjectCollection"]["featureMember"][0]
+            ["GeoObject"]["metaDataProperty"]["GeocoderMetaData"]
+            ["Address"]["Components"]
+        )
+
+        parsed = {comp["kind"]: comp["name"] for comp in components}
+        return Response(
+            {
+                "city": parsed.get("locality"),
+                "street": parsed.get("street"),
+                "house": parsed.get("house")
+            },
+            status=status.HTTP_200_OK
+        )
+    except Exception:
+        return Response(
+            {
+                "error": "Не удалось определить адрес"
+            }, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view([ "POST" ])
+@access_token_required
+def add_delivery_address(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    serializer = DeliveryAddressSerializer(
+        data=request.data,
+        context={"user": request.user}
+    )
+
+    if not serializer.is_valid():
+        return Response(
+            {
+                "error": serializer.errors[0]
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        serializer.save()
+    except Exception:
+        return Response(
+            {
+                "error": "Что-то пошло не так"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user_addresses = DeliveryAddress.objects.filter(user=request.user)
+    return Response(
+        {
+            "user_addresses": DeliveryAddressSerializer(user_addresses, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "PATCH" ])
+@access_token_required
+def edit_delivery_address(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    address_id = request.query_params.get("address_id")
+    new_address_data = request.data.get("new_address_value")
+
+    if not address_id or not new_address_data:
+        return Response(
+            {
+                "error": "Неверные параметры запроса"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        address = DeliveryAddress.objects.get(id=address_id, user=request.user)
+    except DeliveryAddress.DoesNotExist:
+        return Response(
+            {
+                "error": "Такой адрес не найден"
+            }, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    edit_serializer = EditDeliveryAddressSerializer(
+        address,
+        data=new_address_data,
+        context={"user": request.user},
+        partial=True
+    )
+
+    if not edit_serializer.is_valid():
+        return Response(
+            {
+                "error": edit_serializer.errors[0]
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    edit_serializer.save()
+
+    user_addresses = DeliveryAddress.objects.filter(user=request.user)
+    return Response(
+        {
+            "user_addresses": DeliveryAddressSerializer(user_addresses, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "DELETE" ])
+@access_token_required
+def remove_delivery_address(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    address_id = request.query_params.get("address_id")
+    if not address_id:
+        return Response(
+            {
+                "error": "Необходим параметр addressId."
+            }, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        address = DeliveryAddress.objects.get(id=int(address_id), user=request.user)
+        address.delete()
+    except DeliveryAddress.DoesNotExist:
+        return Response(
+            {
+                "error": "Такого адреса доставки не существует."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user_addresses = DeliveryAddress.objects.filter(user=request.user)
+    return Response(
+        {
+            "user_addresses": DeliveryAddressSerializer(user_addresses, many=True).data
         },
         status=status.HTTP_200_OK
     )
@@ -361,4 +540,153 @@ def update_user_password(request: Request):
         status=status.HTTP_200_OK
     )
 
+@api_view(["GET"])
+@access_token_required
+def get_orders_history(request: Request):
+    """
+    История всех заказов текущего пользователя.
+
+    URL:   /api/orders/history
+    Ответ: { "orders": [ ... ] }
+    """
+    orders_qs = (
+        Order.objects
+             .filter(customer=request.user)
+             .order_by("-creation_date")
+             .prefetch_related(
+                "orderitem_set__pizza",
+                "orderitem_set__orderitemingredient_set__ingredient",
+             )
+    )
+
+    serializer = OrderHistorySerializer(orders_qs, many=True)
+    return Response({"orders": serializer.data}, status=status.HTTP_200_OK)
+
+@api_view([ "GET" ])
+@access_token_required
+def get_order_status(request: Request, order_id: str):
+    try:
+        order = Order.objects.get(id=order_id, customer=request.user)
+    except Order.DoesNotExist:
+        return Response(
+            {"error": "Заказ не найден."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception:
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+    if order.is_completed:
+        status_text = "completed"
+    elif order.is_paid:
+        status_text = "paid"
+    else:
+        status_text = "created"
+
+    delivery_time = None
+    if hasattr(order, "expected_delivery_at") and order.expected_delivery_at:
+        delivery_time = order.expected_delivery_at
+    elif hasattr(order, "delivered_at") and order.delivered_at:
+        delivery_time = order.delivered_at
+    else:
+        if order.is_paid and not order.is_completed:
+            delivery_time = order.creation_date + timedelta(hours=1)
+
+    return Response(
+        {
+            "order_id": order.id,
+            "status": status_text,
+            "is_paid": order.is_paid,
+            "is_completed": order.is_completed,
+            "delivery_time": delivery_time
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "GET" ])
+@access_token_required
+def get_payment_methods(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
+    methods = PaymentMethod.objects.filter(user=request.user)
+    return Response(
+        {
+            "payment_methods": PaymentMethodSerializer(methods, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "POST" ])
+@access_token_required
+def add_payment_method(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    serializer = PaymentMethodSerializer(
+        data=request.data,
+        context={"user": request.user}
+    )
+
+    if not serializer.is_valid():
+        return Response(
+            {
+                "error": serializer.errors[0]
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    serializer.save()
+
+    methods = PaymentMethod.objects.filter(user=request.user)
+    return Response(
+        {
+            "payment_methods": PaymentMethodSerializer(methods, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+    
+@api_view([ "DELETE" ])
+@access_token_required
+def remove_payment_method(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    method_id = request.query_params.get("method_id")
+    if not method_id:
+        return Response(
+            {
+                "error": "Необходим параметр methodId."
+            }, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        method = PaymentMethod.objects.get(id=int(method_id), user=request.user)
+        method.delete()
+    except PaymentMethod.DoesNotExist:
+        return Response(
+            {
+                "error": "Такого метода оплаты не существует."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    methods = PaymentMethod.objects.filter(user=request.user)
+    return Response(
+        {
+            "payment_methods": PaymentMethodSerializer(methods, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )

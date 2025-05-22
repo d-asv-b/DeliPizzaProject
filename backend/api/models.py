@@ -176,12 +176,24 @@ class OrderItemIngredient(models.Model):
     order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
 
+
 class DeliveryAddress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     city = models.CharField()
     street = models.CharField()
-    buildingNumber = models.CharField()
-    appartmentNumber = models.IntegerField()
-    isDefault = models.BooleanField()
-    coordinates = models.CharField()
- 
+    building_number = models.CharField()
+    apartment_number = models.CharField(default="")
+    entrance_number = models.CharField(default="")
+    intercom = models.CharField(default="")
+    comment = models.CharField(max_length=128, default="")
+    is_default = models.BooleanField()
+    coordinates = models.CharField(default="")
+
+
+class PaymentMethod(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    card_holder = models.CharField(max_length=100)
+    card_last_4_numbers = models.CharField(max_length=4)
+    expiry_month = models.IntegerField()
+    expiry_year = models.IntegerField()
+    added_at = models.DateField(auto_now_add=True)
