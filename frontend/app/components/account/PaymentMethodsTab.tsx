@@ -12,10 +12,10 @@ export default function AccountSettingsTab() {
                 ?
                 methods.map(
                     (method, idx) => (
-                        <div className="flex flex-row grow gap-1">
+                        <div className="flex flex-row grow gap-5 items-center">
                             <div>{ idx + 1 }.</div>
                             <div>{ method.cardHolder }</div>
-                            <div>**** **** **** { method.cardLast4Letters }</div>
+                            <div>**** **** **** { method.cardLast4Numbers }</div>
                             <div>{ method.expiryMonth }/{ method.expiryYear }</div>
                             <Button
                                 onClick={

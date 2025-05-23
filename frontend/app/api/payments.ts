@@ -5,7 +5,7 @@ export async function getPaymentMethods(): Promise<PaymentMethod[]> {
         "/payments/get_methods"
     );
 
-    return response.data.methods;
+    return response.data.paymentMethods;
 }
 
 export async function addPaymentMethod(data: CreatePaymentMethodRequest): Promise<PaymentMethod[]> {
@@ -14,7 +14,7 @@ export async function addPaymentMethod(data: CreatePaymentMethodRequest): Promis
         data
     );
 
-    return response.data.methods;
+    return response.data.paymentMethods;
 }
 
 export async function removePaymentMethod(data: DeletePaymentMethodRequest): Promise<PaymentMethod[]> {
@@ -27,5 +27,5 @@ export async function removePaymentMethod(data: DeletePaymentMethodRequest): Pro
         }
     );
 
-    return response.data.methods;
+    return response.data.paymentMethods;
 }

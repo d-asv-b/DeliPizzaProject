@@ -48,7 +48,7 @@ export async function deleteDeliveryAddress(data: DeleteDeliveryAddressRequest):
 
 export async function resolveAddressByCoords(data: GeocodeResolveAddressRequest): Promise<GeocodeResolveAddressResponse> {
     const response = await api.get<GeocodeResolveAddressResponse>(
-        "/addresses/geocode",
+        "/addresses/resolve_address",
         {
             params: {
                 lon: data.lon,

@@ -1,7 +1,7 @@
 interface PaymentMethod {
     id: string;
     cardHolder: string;
-    cardLast4Letters: string;
+    cardLast4Numbers: string;
     expiryMonth: number;
     expiryYear: number;
     addedAt: string;
@@ -9,7 +9,7 @@ interface PaymentMethod {
 
 interface CreatePaymentMethodRequest {
     cardHolder: string;
-    cardLast4Letters: string;
+    cardLast4Numbers: string;
     expiryMonth: number;
     expiryYear: number;
 };
@@ -19,5 +19,5 @@ interface DeletePaymentMethodRequest {
 };
 
 interface PaymentMethodsResponse {
-    methods: PaymentMethod[];
+    paymentMethods: PaymentMethod[];
 };

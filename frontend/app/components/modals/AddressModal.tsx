@@ -7,7 +7,7 @@ import {
     Button as YButton,
     GeolocationControl
 } from "@iminside/react-yandex-maps";
-import type { DeliveryAddress } from "~/models/addresses";
+import type { DeliveryAddress, GeocodeResolveAddressRequest } from "~/models/addresses";
 import Button from "../general/Button";
 import { resolveAddressByCoords } from "~/api/addresses";
 import { AxiosError } from "axios";
@@ -123,20 +123,27 @@ export default function DeliveryAddressModal({
     const [comment, setComment] = useState(address.comment || "");
     const [coords, setCoords] = useState<[number, number]>(address.coordinates ? (address.coordinates.split(" ").map(Number) as [number, number]) : [55.751574, 37.573856]); // Это координаты центра Москвы
 
-    const [mapInstance, setMapInstance] = useState<ymaps.Map | null>(null);
-    const listenerAttachedRef = useRef(false);
+    const resolveAddressBtnRef = useRef<any>(null);
+    const clickHandlerRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
-        if (mapInstance && !listenerAttachedRef.current) {
-            listenerAttachedRef.current = true;
+        if (resolveAddressBtnRef.current) {
+            if (clickHandlerRef.current) {
+                resolveAddressBtnRef.current.events.remove('click', clickHandlerRef.current);
+            }           
 
-            mapInstance.events.add("click", async (e: any) => {
+            const handler = async () => {
+                if (!coords) {
+                    toast.error("Сначала выберите точку на карте.");
+                    return;
+                }
+
                 try {
-                    const coords = e.get("coords");
                     const resolvedAddress = await resolveAddressByCoords({
                         lat: coords[0],
                         lon: coords[1]
-                    });
+                    } as GeocodeResolveAddressRequest);
+
                     setCity(resolvedAddress.city);
                     setStreet(resolvedAddress.street);
                     setBuilding(resolvedAddress.buildingNumber);
@@ -147,15 +154,12 @@ export default function DeliveryAddressModal({
                         toast.error("Произошла ошибка...");
                     }
                 }
-            });
-        }
-    }, [mapInstance]);
+            };
 
-    const handleMapInstance = (ref: ymaps.Map | null) => {
-        if (ref) {
-            setMapInstance(ref);
+            resolveAddressBtnRef.current.events.add('click', handler);
+            clickHandlerRef.current = handler;
         }
-    };
+    }, [coords]);
 
     const handleMapClick = (e: any) => {
         const newCoords: [number, number] = e.get("coords");
@@ -262,7 +266,9 @@ export default function DeliveryAddressModal({
                                         content: "Определить адрес"
                                     }
                                 }
-                                instanceRef={ (ref) => handleMapInstance(ref) }
+                                instanceRef={ (ref) => {
+                                    resolveAddressBtnRef.current = ref;
+                                } }
                             />
                             <GeolocationControl options={{ float: "left" }} />
                         </Map>
