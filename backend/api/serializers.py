@@ -17,22 +17,30 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class PizzaIngredientSerializer(serializers.ModelSerializer):
-    ingredient = IngredientSerializer()
+    id = serializers.IntegerField(source="ingredient.id")
+    name = serializers.CharField(source="ingredient.name")
+    icon_url = serializers.CharField(source="ingredient.icon_url")
+    price = serializers.IntegerField(source="ingredient.price")
 
     class Meta:
         model = PizzaIngredient
-        fields = ["ingredient", "is_additional"]
+        fields = ["id", "name", "icon_url", "price"]
 
 
 class PizzaSerializer(serializers.ModelSerializer):
-    ingredients = serializers.SerializerMethodField()
+    main_ingredients = serializers.SerializerMethodField()
+    additional_ingredients = serializers.SerializerMethodField()
 
     class Meta:
         model = Pizza
-        fields = ["id", "name", "icon_url", "description", "base_price", "ingredients"]
+        fields = ["id", "name", "icon_url", "description", "base_price", "main_ingredients", "additional_ingredients"]
 
-    def get_ingredients(self, obj):
-        pizza_ingredients = PizzaIngredient.objects.filter(pizza=obj)
+    def get_main_ingredients(self, obj):
+        pizza_ingredients = PizzaIngredient.objects.filter(pizza=obj, is_additional=False)
+        return PizzaIngredientSerializer(pizza_ingredients, many=True).data
+    
+    def get_additional_ingredients(self, obj):
+        pizza_ingredients = PizzaIngredient.objects.filter(pizza=obj, is_additional=True)
         return PizzaIngredientSerializer(pizza_ingredients, many=True).data
 
 
