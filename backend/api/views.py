@@ -19,7 +19,7 @@ from .models import RegistrationUserData, AuthorizationUserData, Pizza, Delivery
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
-    PaymentMethodSerializer, EditDeliveryAddressSerializer
+    PaymentMethodSerializer, EditDeliveryAddressSerializer, CancelOrderSerializer
 
 from .decorators import access_token_required
 
@@ -688,5 +688,31 @@ def remove_payment_method(request: Request):
         {
             "payment_methods": PaymentMethodSerializer(methods, many=True).data
         },
+        status=status.HTTP_200_OK
+    )
+
+@api_view(["POST"])                       # POST ‒ чтобы явно изменить ресурс
+@access_token_required
+def cancel_order(request: Request, order_id: str):
+    try:
+        order = Order.objects.get(id=order_id, customer=request.user)
+    except Order.DoesNotExist:
+        return Response(
+            {"error": "Заказ не найден."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    if not order.can_be_cancelled:
+        return Response(
+            {"error": "Отменить нельзя: заказ уже обрабатывается, доставлен или отменён ранее."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    order.is_cancelled = True
+    order.cancelled_at = timezone.now()
+    order.save(update_fields=["is_cancelled", "cancelled_at"])
+
+    return Response(
+        CancelOrderSerializer(order).data,
         status=status.HTTP_200_OK
     )

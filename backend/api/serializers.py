@@ -262,3 +262,7 @@ class OrderHistorySerializer(serializers.ModelSerializer):
             for add in item.orderitemingredient_set.all():
                 total += add.ingredient.price
         return total
+class CancelOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Order
+        fields = ["id", "is_cancelled", "cancelled_at"]

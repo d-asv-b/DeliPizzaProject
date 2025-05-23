@@ -156,6 +156,13 @@ class Order(models.Model):
     is_completed = models.BooleanField()
     creation_date = models.DateField()
 
+    is_cancelled = models.BooleanField(default=False)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def can_be_cancelled(self) -> bool:
+        return not self.is_completed and not self.is_cancelled
+
 
 class OrderItem(models.Model):
     """
