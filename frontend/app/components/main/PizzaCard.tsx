@@ -1,14 +1,14 @@
 import { useCloseModal, useModal } from "~/contexts/ModalHost";
 import type { Pizza } from "~/models/pizza";
 import PizzaInfoModal from "../modals/PizzaInfoModal";
+import { useCartContext } from "~/contexts/CartContext";
+import toast from "react-hot-toast";
 
 export default function PizzaCard({ pizza }: {pizza: Pizza}) {
     const openModal = useModal();
     const closeModal = useCloseModal();
 
-    function addToCart() {
-        // TODO
-    }
+    const { addItem } = useCartContext();
 
     return (
         <div className="flex flex-row rounded-xl p-5 min-h sm:min-h-44 bg-secondary text-text-secondary">
@@ -44,8 +44,15 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
                                                 }
                                             }
                                             onSave={
-                                                () => {
-                                                    addToCart();
+                                                (item: CartItem) => {
+                                                    try {
+                                                        addItem(item);
+                                                        toast.success("Пицци добавлена в корзину!");
+                                                        closeModal(modalId);
+                                                    }
+                                                    catch {
+                                                        toast.error("Произошла ошибка. Пожалуйста, перезагрузите страницу и попробуйте снова!");
+                                                    }
                                                 }
                                             }
                                             pizzaData={ pizza }

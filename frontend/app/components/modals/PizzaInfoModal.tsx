@@ -7,7 +7,7 @@ import { FaPlus, FaMinus } from "react-icons/fa";
 type PizzaModalParams = {
     pizzaData: Pizza;
     onClose: () => void;
-    onSave: () => void;
+    onSave: (item: CartItem) => void;
 };
 
 export default function PizzaInfoModal({ pizzaData, onClose, onSave }: PizzaModalParams) {
@@ -93,7 +93,16 @@ export default function PizzaInfoModal({ pizzaData, onClose, onSave }: PizzaModa
                             </div>
                             <Button
                                 extraClasses="p-4 text-xl w-full lg:w-fit"
-                                onClick={ () => onSave }
+                                onClick={ () =>
+                                    onSave({
+                                        pizzaId: pizzaData.id,
+                                        ingredients: {
+                                            add: selectedAdditionalIngredients,
+                                            remove: removedMainIngredients
+                                        },
+                                        count: 1
+                                    })
+                                }
                             >
                                 Добавить в корзину
                             </Button>
