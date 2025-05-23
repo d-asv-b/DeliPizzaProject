@@ -19,7 +19,7 @@ from .models import RegistrationUserData, AuthorizationUserData, Pizza, Delivery
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
-    PaymentMethodSerializer, EditDeliveryAddressSerializer
+    PaymentMethodSerializer, EditDeliveryAddressSerializer, PlaceOrderSerializer
 
 from .decorators import access_token_required
 
@@ -690,3 +690,13 @@ def remove_payment_method(request: Request):
         },
         status=status.HTTP_200_OK
     )
+
+@api_view(["POST"])
+@access_token_required
+def place_order(request: Request):
+    serializer = PlaceOrderSerializer(data=request.data, context={"request": request})
+    serializer.is_valid(raise_exception=True)
+
+    order = serializer.save()
+
+    return Response(OrderHistorySerializer(order).data, status=status.HTTP_201_CREATED)

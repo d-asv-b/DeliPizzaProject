@@ -1,11 +1,14 @@
 from django.conf import settings
+import django
+import django.db
+import django.utils
 import requests
 from rest_framework import serializers
 
 from djangorestframework_camel_case.util import camel_to_underscore
 
 from .models import User, RegistrationUserData, AuthorizationUserData, \
-    Ingredient, PizzaIngredient, Pizza, DeliveryAddress, PaymentMethod, Order
+    Ingredient, PizzaIngredient, Pizza, DeliveryAddress, PaymentMethod, Order, OrderItemIngredient, OrderItem
 
 from datetime import datetime
 
@@ -262,3 +265,76 @@ class OrderHistorySerializer(serializers.ModelSerializer):
             for add in item.orderitemingredient_set.all():
                 total += add.ingredient.price
         return total
+
+class OrderItemIngredientInputSerializer(serializers.Serializer):
+    ingredient_id = serializers.IntegerField()   # id ингредиента
+
+
+class OrderItemInputSerializer(serializers.Serializer):
+    pizza_id    = serializers.IntegerField()     # id пиццы
+    quantity    = serializers.IntegerField(min_value=1, default=1)
+    ingredients = OrderItemIngredientInputSerializer(many=True, required=False)
+
+class PlaceOrderSerializer(serializers.Serializer):
+    items         = OrderItemInputSerializer(many=True)
+    address_id    = serializers.IntegerField()
+    delivery_time = serializers.DateTimeField()
+
+    def validate(self, data):
+        user = self.context["request"].user
+
+        try:
+            data["address"] = DeliveryAddress.objects.get(id=data["address_id"], user=user)
+        except DeliveryAddress.DoesNotExist:
+            raise serializers.ValidationError({"address_id": "Addres nor found."})
+
+        if not data["items"]:
+            raise serializers.ValidationError({"items": "At least 1 pizza need."})
+
+        return data
+
+    def create(self, validated):
+        from django.db import transaction
+        from django.utils import timezone
+        import uuid, base64
+
+        user            = self.context["request"].user
+        address         = validated["address"]
+        expected_dt     = validated["delivery_time"]
+        generated_id    = base64.urlsafe_b64encode(uuid.uuid4().bytes)[:22].decode()
+
+        with transaction.atomic():
+            order = Order.objects.create(
+                id=generated_id,
+                customer=user,
+                creation_date=timezone.now().date(),
+                is_paid=False,
+                is_completed=False,
+                expected_delivery_at=expected_dt,
+                delivery_address=address
+            )
+
+            total_amount = 0
+
+            for it in validated["items"]:
+                # 1) достаём объекты
+                pizza = Pizza.objects.get(id=it["pizza_id"])
+                ingredients_qs = Ingredient.objects.filter(
+                    id__in=[x["ingredient_id"] for x in it.get("ingredients", [])]
+                )
+
+                item = OrderItem.objects.create(
+                    order=order,
+                    pizza=pizza,
+                    quantity=it["quantity"]
+                )
+
+                OrderItemIngredient.objects.bulk_create([
+                    OrderItemIngredient(order_item=item, ingredient=ing)
+                    for ing in ingredients_qs
+                ])
+
+                add_ings_price = sum(ing.price for ing in ingredients_qs)
+                total_amount  += (pizza.base_price + add_ings_price) * it["quantity"]
+
+            return order

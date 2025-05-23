@@ -156,6 +156,24 @@ class Order(models.Model):
     is_completed = models.BooleanField()
     creation_date = models.DateField()
 
+    creation_date = models.DateField()
+
+    is_cancelled = models.BooleanField(default=False)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    expected_delivery_at = models.DateTimeField(null=True, blank=True)
+    delivery_address = models.ForeignKey(
+        "DeliveryAddress",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="orders"
+    )
+
+    @property
+    def can_be_cancelled(self) -> bool:
+        return (not self.is_completed) and (not self.is_cancelled)
+
 
 class OrderItem(models.Model):
     """
@@ -165,6 +183,9 @@ class OrderItem(models.Model):
     """
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     pizza = models.ForeignKey(Pizza, on_delete=models.PROTECT)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    pizza = models.ForeignKey(Pizza, on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField(default=1)
 
 
 class OrderItemIngredient(models.Model):

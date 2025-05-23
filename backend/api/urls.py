@@ -24,5 +24,7 @@ urlpatterns = [
     path("payments/add_method", views.add_payment_method),
     path("payments/remove_method", views.remove_payment_method),
   
-    path("orders/history", views.get_orders_history, name="orders-history")
+    path("orders/history", views.get_orders_history, name="orders-history"),
+    path("orders", views.place_order, name="order-create"),
+
 ]
