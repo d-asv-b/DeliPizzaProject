@@ -34,7 +34,7 @@ export default function BasicModalWindow({ isOpen, title, minWidth = 72, childre
     }
 
     return (
-        <div className="fixed inset-0 h-full w-full flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-20 h-full w-full flex items-center justify-center backdrop-blur-sm">
             <div className={ `min-w-1/4 w-full h-full lg:h-fit lg:w-fit lg:rounded-xl p-5 border-2 overflow-y-auto border-gray-600 bg-main text-text-secondary [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:my-3 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:my-3 [&::-webkit-scrollbar-thumb]:bg-scrollbar` }>
                 <div className="flex flex-row">
                     <div className="flex-col grow content-center text-2xl text-semibold pr-5">

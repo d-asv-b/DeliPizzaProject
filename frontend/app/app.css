@@ -10,9 +10,15 @@
     src: url("/fonts/Bounded-Variable.ttf") format(truetype);
 }
 
+@font-face {
+    font-family: "BubbleSans";
+    src: url("/fonts/BubbleSans-Regular.otf") format(truetype);
+}
+
 @theme {
     --font-caveat: "CaveatBrush";
     --font-bounded: "Bounded";
+    --font-bubble-sans: "BubbleSans";
 }
 
 * {

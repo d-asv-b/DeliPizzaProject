@@ -1,6 +1,11 @@
+import { useCloseModal, useModal } from "~/contexts/ModalHost";
 import type { Pizza } from "~/models/pizza";
+import PizzaInfoModal from "../modals/PizzaInfoModal";
 
 export default function PizzaCard({ pizza }: {pizza: Pizza}) {
+    const openModal = useModal();
+    const closeModal = useCloseModal();
+
     function addToCart() {
         // TODO
     }
@@ -23,13 +28,31 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
                 </div>
 
                 <div className="flex flex-row w-full items-center align-middle justify-between">
-                    <div className="text-xl font-bold font-bounded">
+                    <div className="text-xl font-bold font-bubble-sans">
                         {pizza.basePrice}₽
                     </div>
                     <div>
                         <button
                             className="rounded-xl p-3 font-bounded cursor-pointer bg-primary text-text-primary hover:bg-primary/85"
-                            onClick={addToCart}
+                            onClick={ 
+                                () => {
+                                    const modalId = openModal(
+                                        <PizzaInfoModal
+                                            onClose={
+                                                () => {
+                                                    closeModal(modalId);
+                                                }
+                                            }
+                                            onSave={
+                                                () => {
+                                                    addToCart();
+                                                }
+                                            }
+                                            pizzaData={ pizza }
+                                        />
+                                    )
+                                }
+                            }
                         >
                             В корзину
                         </button>
