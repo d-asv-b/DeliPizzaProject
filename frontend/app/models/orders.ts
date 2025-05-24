@@ -22,14 +22,35 @@ interface OrderStatusRequest {
     orderId: string;
 }
 
-interface OrderResponse {
+interface OrderStatus {
     id: string;
-    orderPositions: string;
+    orderPositions: string[];
     status: 'created' | 'paid' | 'cooking' | 'cooked' | 'delivering' | 'completed' | 'cancelled';
     deliveryTime: string;
     creationDate: string;
-    deliveryCoordinates: [number, number];
-    restaurantCoordinates: [number, number];
+    deliveryCoordinates: string;
+    restaurantCoordinates: string;
+    amount?: number;
+}
+
+interface OrderHistoryItem {
+    id: string;
+    orderPositions: {
+        name: string;
+        add: {
+            name: string
+        }[];
+        remove: {
+            name: string
+        }[];
+    }[];
+    status: 'created' | 'paid' | 'cooking' | 'cooked' | 'delivering' | 'completed' | 'cancelled';
+    creationDate: string;
+    amount?: number;
+}
+
+interface OrderResponse {
+    orderStatus: OrderStatus;
 }
 
 interface OrderCancellationRequest {
@@ -37,5 +58,5 @@ interface OrderCancellationRequest {
 }
 
 interface OrdersListResponse {
-    orders: OrderResponse[];
+    orders: OrderHistoryItem[];
 }

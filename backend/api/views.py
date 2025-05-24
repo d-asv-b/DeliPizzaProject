@@ -647,7 +647,7 @@ def add_payment_method(request: Request):
         },
         status=status.HTTP_200_OK
     )
-    
+
 @api_view([ "DELETE" ])
 @access_token_required
 def remove_payment_method(request: Request):

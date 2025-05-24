@@ -251,20 +251,39 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class OrderItemIngredientSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="ingredient.name")
+
+    class Meta:
+        model = OrderItemIngredient
+        fields = [ "name" ]
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    add = serializers.SerializerMethodField()
+    remove = serializers.SerializerMethodField()
+    name = serializers.CharField(source="pizza.name")
+
+    class Meta:
+        model = OrderItem
+        fields = [ "name", "add", "remove" ]
+    
+    def get_add(self, obj: OrderItem):
+        add_ingredients = OrderItemIngredient.objects.filter(order_item=obj, state="add")
+        return OrderItemIngredientSerializer(add_ingredients, many=True).data
+    
+    def get_remove(self, obj: OrderItem):
+        remove_ingredients = OrderItemIngredient.objects.filter(order_item=obj, state="remove")
+        return OrderItemIngredientSerializer(remove_ingredients, many=True).data
+
+
 class OrderHistorySerializer(serializers.ModelSerializer):
-    status = serializers.SerializerMethodField()
     amount = serializers.SerializerMethodField()
+    order_positions = serializers.SerializerMethodField()
 
     class Meta:
         model  = Order
-        fields = ["id", "status", "is_paid", "is_completed", "creation_date", "amount"]
-
-    def get_status(self, obj: Order) -> str:
-        if obj.is_completed:
-            return "completed"
-        if obj.is_paid:
-            return "paid"
-        return "created"
+        fields = ["id", "status", "order_positions", "creation_date", "amount", "completition_date"]
 
     def get_amount(self, obj: Order) -> int:
         total = 0
@@ -273,6 +292,10 @@ class OrderHistorySerializer(serializers.ModelSerializer):
             for add in item.orderitemingredient_set.all():
                 total += add.ingredient.price
         return total
+    
+    def get_order_positions(self, obj: Order):
+        order_positions = OrderItem.objects.filter(order=obj)
+        return OrderItemSerializer(order_positions, many=True).data
 
 
 class OrderStatusSerializer(serializers.ModelSerializer):

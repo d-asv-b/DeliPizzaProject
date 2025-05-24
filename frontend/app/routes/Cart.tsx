@@ -101,7 +101,7 @@ export default function Cart() {
                     cart: cart,
                     deliveryAddressId: selectedAddressId,
                     paymentMethodId: selectedMethodId,
-                    deliveryTime: `${deliveryDate}/${deliveryTime}/${(new Date().getTimezoneOffset()) / 60}`
+                    deliveryTime: `${deliveryDate}|${deliveryTime}|${Intl.DateTimeFormat().resolvedOptions().timeZone}`
                 }
             );
 

@@ -9,7 +9,7 @@ export async function placeOrder(data: PlaceOrderRequest): Promise<string> {
     return response.data.orderId;
 }
 
-export async function getOrderStatus(data: OrderStatusRequest): Promise<OrderResponse> {
+export async function getOrderStatus(data: OrderStatusRequest): Promise<OrderStatus> {
     const response = await api.get<OrderResponse>(
         "/orders/get_order_status",
         {
@@ -19,15 +19,15 @@ export async function getOrderStatus(data: OrderStatusRequest): Promise<OrderRes
         }
     );
 
-    return response.data;
+    return response.data.orderStatus;
 }
 
-export async function getUserOrders(): Promise<OrdersListResponse> {
+export async function getUserOrders(): Promise<OrderHistoryItem[]> {
     const response = await api.get<OrdersListResponse>(
-        "/orders/get_list"
+        "/orders/history"
     );
 
-    return response.data;
+    return response.data.orders;
 }
 
 export async function cancelOrder(data: OrderCancellationRequest) {

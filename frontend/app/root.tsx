@@ -14,8 +14,9 @@ import { Toaster } from "react-hot-toast";
 import { AuthContextProvider } from "./contexts/AuthContext";
 import { ModalProvider } from "./contexts/ModalHost";
 import { DeliveryAddressContextProvider } from "./contexts/DeliveryAddressesContext";
-import { PaymentMethodsContext, PaymentMethodsContextProvide } from "./contexts/PaymentMethodsContexts";
+import { PaymentMethodsContextProvide } from "./contexts/PaymentMethodsContexts";
 import { CartContextProvider } from "./contexts/CartContext";
+import { OrdersContextProvider } from "./contexts/OrdersContext";
 
 export function Layout({ children }: { children: React.ReactNode }) {
     return (
@@ -36,13 +37,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             <AuthContextProvider>
                                 <PaymentMethodsContextProvide>
                                     <DeliveryAddressContextProvider>
-                                        <ModalProvider>
-                                            <PageContainer>
-                                                <Toaster position="top-center"/>
-                                                <div id="modal-root"></div>
-                                                {children}
-                                            </PageContainer>
-                                        </ModalProvider>
+                                        <OrdersContextProvider>
+                                            <ModalProvider>
+                                                <PageContainer>
+                                                    <Toaster position="top-center"/>
+                                                    <div id="modal-root"></div>
+                                                    {children}
+                                                </PageContainer>
+                                            </ModalProvider>
+                                        </OrdersContextProvider>
                                     </DeliveryAddressContextProvider>
                                 </PaymentMethodsContextProvide>
                             </AuthContextProvider>

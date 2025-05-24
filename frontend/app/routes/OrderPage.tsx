@@ -9,6 +9,7 @@ import {
 import { cancelOrder, getOrderStatus } from "~/api/orders";
 import Button from "~/components/general/Button";
 import { BiLoaderCircle } from "react-icons/bi";
+import { format } from "date-fns"
 import toast from "react-hot-toast";
 
 export default function OrderStatusPage() {
@@ -21,7 +22,7 @@ export default function OrderStatusPage() {
         return;
     }
   
-    const [order, setOrder] = useState<OrderResponse | null>(null);
+    const [order, setOrder] = useState<OrderStatus | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchOrder = useCallback(async () => {
@@ -71,13 +72,13 @@ export default function OrderStatusPage() {
             return "Заказ создан. Ожидаем оплаты...";
         }
         else if (order.status === "paid") {
-            return "Заказ создан и оплачен. Передаем в ресторант.";
+            return "Заказ создан и оплачен. Передаем информацию в пиццерию.";
         }
         else if (order.status === "cooking") {
             return `Заказ готовится. Будет в ${ order.deliveryTime }`;
         }
         else if (order.status === "cooked") {
-            return "Заказ готов. Ресторант передает его в службу доставки.";
+            return "Заказ готов. Пиццерия передает его в службу доставки.";
         }
         else if (order.status === "delivering") {
             return `Курьер спешит к вам с заказом. Будет в ~${ order.deliveryTime }`;
@@ -93,6 +94,12 @@ export default function OrderStatusPage() {
         }
     };
 
+    const deliveryAddressCoords = order.deliveryCoordinates.split(" ").map(Number) as [number, number];
+    const restaurantAddressCoords = order.restaurantCoordinates.split(" ").map(Number) as [number, number];
+
+    const deliveryAddressCoordsNormal = [ deliveryAddressCoords[1], deliveryAddressCoords[0] ]
+    const restaurantAddressCoordsNormal = [ restaurantAddressCoords[1], restaurantAddressCoords[0] ]
+
     return (
         <div className="h-full w-full flex justify-center items-center bg-transparent">
             <div className="flex flex-col h-full w-full rounded-none xl:h-5/6 xl:w-5/6 2xl:w-3/4 3xl:w-2/3 xl:rounded-2xl bg-secondary text-text-secondary">
@@ -105,7 +112,7 @@ export default function OrderStatusPage() {
                 </div>
                 <div className="flex flex-col h-full py-2 px-10">
                     <div className="text-5xl font-bold border-b-2 mb-5 px-2">
-                        Заказ от { order.creationDate }
+                        Заказ от { format(new Date(order.creationDate), "HH:mm dd.MM.yy") }
                     </div>
 
                     <div className="flex flex-row">
@@ -126,10 +133,12 @@ export default function OrderStatusPage() {
                     <div className="flex w-full h-full mt-2 rounded overflow-hidden border">
                         <YMaps>
                             <Map
-                                defaultState={ { center: [55.751574, 37.573856], zoom: 15, controls: [] } }
+                                defaultState={ { center: deliveryAddressCoordsNormal, zoom: 15, controls: [] } }
                                 width="100%"
                                 height="100%"
                             >
+                                <Placemark geometry={ deliveryAddressCoordsNormal } options={{ preset: 'islands#blueDotIcon' }} />
+                                <Placemark geometry={ restaurantAddressCoordsNormal } options={{ preset: 'islands#redDotIcon' }} />
                             </Map>
                         </YMaps>
                     </div>

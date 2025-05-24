@@ -78,7 +78,7 @@ export default function AccountSettings() {
                     <div className="text-lg md:text-xl xl:text-3xl pl-5 py-5">
                         { sidebarTabs[activeTab].title }
                     </div>
-                    <div className="grow p-5">
+                    <div className="h-[90%] grow p-5">
                         <Routes>
                             <Route index element={<AccountSettingsTab/>}/>
                             <Route path="settings" element={<AccountSettingsTab/>}/>
