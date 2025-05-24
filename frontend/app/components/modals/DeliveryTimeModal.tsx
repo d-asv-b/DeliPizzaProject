@@ -8,9 +8,10 @@ import {
     addDays,
     startOfDay,
     isBefore,
-    addHours,
     getHours,
     getMinutes,
+    setSeconds,
+    setMilliseconds,
 } from "date-fns";
 import Button from "../general/Button";
 
@@ -29,7 +30,7 @@ export default function DeliveryTimeModal({ onSave, onClose }: DeliveryTimeModal
     }, [day]);
 
     const generateAvailableTimes = () => {
-        const now = addHours(new Date(), 11);
+        const now = new Date();
 
         let referenceDate = startOfDay(now);
         if (day === "tomorrow") {
@@ -67,7 +68,7 @@ export default function DeliveryTimeModal({ onSave, onClose }: DeliveryTimeModal
 
         const endOfDayLimit = setMinutes(setHours(referenceDate, 22), 0);
 
-        let currentTime = startTime;
+        let currentTime = setMilliseconds(setSeconds(startTime, 0), 0);
 
         while (isBefore(currentTime, endOfDayLimit) || currentTime.getTime() === endOfDayLimit.getTime()) {
             times.push(currentTime);

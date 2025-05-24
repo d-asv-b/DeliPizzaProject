@@ -9,7 +9,33 @@ interface CartItem {
 
 interface PlaceOrderRequest {
     cart: CartItem[];
-    addressId: string;
-    methodId: string;
-    time?: Date
+    deliveryAddressId: string;
+    paymentMethodId: string;
+    deliveryTime: string;      // строка формата "день/час:минута/час.пояс"
 };
+
+interface PlaceOrderResponse {
+    orderId: string;
+}
+
+interface OrderStatusRequest {
+    orderId: string;
+}
+
+interface OrderResponse {
+    id: string;
+    orderPositions: string;
+    status: 'created' | 'paid' | 'cooking' | 'cooked' | 'delivering' | 'completed' | 'cancelled';
+    deliveryTime: string;
+    creationDate: string;
+    deliveryCoordinates: [number, number];
+    restaurantCoordinates: [number, number];
+}
+
+interface OrderCancellationRequest {
+    orderId: string;
+}
+
+interface OrdersListResponse {
+    orders: OrderResponse[];
+}

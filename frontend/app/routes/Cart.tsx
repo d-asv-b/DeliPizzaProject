@@ -13,6 +13,10 @@ import type { DeliveryAddress } from "~/models/addresses";
 import { addMinutes, format } from "date-fns"
 import { useCloseModal, useModal } from "~/contexts/ModalHost";
 import DeliveryTimeModal from "~/components/modals/DeliveryTimeModal";
+import toast from "react-hot-toast";
+import { ImSpinner4 } from "react-icons/im";
+import { placeOrder } from "~/api/orders";
+import { AxiosError } from "axios";
 
 function roundUpToNextHalfHour(date: Date): Date {
     const result = new Date(date);
@@ -27,7 +31,7 @@ function roundUpToNextHalfHour(date: Date): Date {
         result.setMinutes(roundedMinutes);
     }
 
-    return result;
+    return addMinutes(result, 30);
 }
 
 export default function Cart() {
@@ -46,6 +50,9 @@ export default function Cart() {
     const initialTime = roundUpToNextHalfHour(new Date());
     const [ deliveryTime, setDeliveryTime ] = useState<string>(format(initialTime, "HH:mm"));
 
+    const [ processingOrder, setProcessingOrder ] = useState<boolean>(false);
+    const [ orderPlaced, setOrderPlaced ] = useState<boolean>(false);
+
     const openModal = useModal();
     const closeModal = useCloseModal();
 
@@ -59,9 +66,71 @@ export default function Cart() {
         return "";
     }
 
+    async function handlePayBtnClick() {
+        let error = false;
+
+        if (!cart.length) {
+            error = true;
+            toast.error("Корзина пуста! Сначала добавьте товары!");
+        }
+
+        if (!selectedAddressId) {
+            error = true;
+            toast.error("Укажите адрес доставки!");
+        }
+
+        if (!selectedMethodId) {
+            error = true;
+            toast.error("Укажите способ оплаты!");
+        }
+
+        if (!deliveryDate || !deliveryTime) {
+            error = true;
+            toast.error("Укажите время доставки!")
+        };
+
+        if (error) {
+            return;
+        }
+
+        setProcessingOrder(true);
+
+        try {
+            let placedOrderId = await placeOrder(
+                {
+                    cart: cart,
+                    deliveryAddressId: selectedAddressId,
+                    paymentMethodId: selectedMethodId,
+                    deliveryTime: `${deliveryDate}/${deliveryTime}/${(new Date().getTimezoneOffset()) / 60}`
+                }
+            );
+
+            setOrderPlaced(true);
+            toast.success("Заказ создан! Перенаправляем на страницу заказа...");
+            setTimeout(
+                () => {
+                    navigate(`/order?orderId=${placedOrderId}`);
+                },
+                1000
+            );
+        }
+        catch (error) {
+            if (error instanceof AxiosError && error.response && error.response.data.error) {
+                toast.error(error.response.data.error);
+            }
+            else {
+                console.error(error);
+                toast.error("Произошла ошибка...");
+            }
+        }
+        finally {
+            setProcessingOrder(false);
+        }
+    }
+
     return (
         <div className="h-full w-full flex justify-center items-center bg-transparent">
-            <div className="flex flex-col h-5/6 w-3/4 rounded-3xl bg-secondary text-text-secondary">
+            <div className="flex flex-col h-full w-full rounded-none xl:h-5/6 xl:w-5/6 2xl:w-3/4 3xl:w-2/3 xl:rounded-2xl bg-secondary text-text-secondary">
                 <div className="flex flex-row p-5">
                     <Button
                         onClick={ () => navigate("/") }
@@ -69,8 +138,8 @@ export default function Cart() {
                         Назад
                     </Button>
                 </div>
-                <div className="flex flex-row h-full">
-                    <div className="flex flex-col h-full w-4/7 p-5 gap-2">
+                <div className="flex flex-col xl:flex-row h-full gap-2">
+                    <div className="flex flex-col h-full w-full 2xl:w-4/7 px-5 xl:py-5 gap-2">
                         <div className="flex flex-col p-5 bg-main rounded-2xl">
                             <div className="font-semibold text-2xl">
                                 Детали доставки:
@@ -82,7 +151,7 @@ export default function Cart() {
                                     </div>
                                     <div>
                                         <DropdownMenu
-                                            extraClasses="w-md max-w-md"
+                                            extraClasses="xl:w-md max-w-md"
                                             title={ selectedAddressId ? addressToString(addresses.find((address) => address.id === selectedAddressId)) : "Выберите адрес доставки" }
                                             items={ 
                                                 addresses.map(address => 
@@ -127,7 +196,7 @@ export default function Cart() {
                                                     }
                                                 }
                                             >
-                                                <div className="flex flex-row items-center gap-2 text-lg font-medium">
+                                                <div className="flex flex-row items-center gap-2 text-lg font-regular">
                                                     Другое время <FaClock size={ 20 }/>
                                                 </div>
                                             </Button>
@@ -138,8 +207,23 @@ export default function Cart() {
                         </div>
 
                         <div className="flex flex-col p-5 bg-main rounded-2xl h-1/2">
-                            <div className="font-semibold text-2xl">
-                                Содержимое заказа:
+                            <div className="flex flex-row items-center">
+                                <div className="font-semibold text-2xl grow">
+                                    Содержимое заказа:
+                                </div>
+                                {
+                                    cart.length ?
+                                    <div 
+                                        className="text-gray-500 hover:cursor-pointer hover:text-gray-700"
+                                        onClick={
+                                            () => clearCart()
+                                        }
+                                    >
+                                        Очистить корзину
+                                    </div>
+                                    :
+                                    <></>
+                                }
                             </div>
                             <div className="flex flex-col overflow-y-auto gap-1 grow">
                                 {
@@ -260,7 +344,7 @@ export default function Cart() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col h-full grow p-5">
+                    <div className="flex flex-col h-full grow px-5 xl:py-5">
                         <div className="flex flex-col p-5 bg-main rounded-2xl">
                             <div className="font-semibold text-2xl">
                                 Оплата заказа
@@ -272,7 +356,7 @@ export default function Cart() {
                                     </div>
                                     <div>
                                         <DropdownMenu
-                                            extraClasses="w-md max-w-md"
+                                            extraClasses="xl:w-md max-w-md"
                                             title={ selectedMethodId ? `**** **** **** ${methods.find((method) => method.id === selectedMethodId)?.cardLast4Numbers}` : "Выберите способ оплаты" }
                                             items={ 
                                                 methods.map(method => 
@@ -320,10 +404,18 @@ export default function Cart() {
                                     <Button
                                         extraClasses="m-2 mt-4 py-4 text-xl font-semibold"
                                         onClick={
-                                            () => {}
+                                            () => handlePayBtnClick()
                                         }
+                                        isDisabled={ processingOrder || orderPlaced }
                                     >
-                                        Оплатить
+                                        {
+                                            processingOrder ?
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <ImSpinner4 size={20} className="animate-spin"/>
+                                            </div>
+                                            :
+                                            "Оплатить"
+                                        }
                                     </Button>
                                 </div>
                             </div>
