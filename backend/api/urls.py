@@ -25,6 +25,7 @@ urlpatterns = [
     path("payments/remove_method", views.remove_payment_method),
   
     path("orders/history", views.get_orders_history, name="orders-history"),
-    path("orders/cancel_order",views.cancel_order,name="order-cancel")
-    path("orders/get_order_status", views.get_order_status)
+    path("orders/cancel_order",views.cancel_order,name="order-cancel"),
+    path("orders/get_order_status", views.get_order_status),
+    path("orders/place_order", views.place_new_order)
 ]

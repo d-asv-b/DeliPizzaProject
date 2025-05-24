@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
+from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -15,7 +16,7 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from backend import settings
 
 from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress, PaymentMethod, Order
-from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
+from .serializers import PlaceOrderSerializer, ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
     PaymentMethodSerializer, EditDeliveryAddressSerializer, \
@@ -583,7 +584,7 @@ def get_order_status(request: Request):
             },
             status=status.HTTP_404_NOT_FOUND
         )
-    except Exception:
+    except Exception as e:
         return Response(
             {
                 "error": "Error on server. Please try again later"
@@ -711,9 +712,43 @@ def cancel_order(request: Request):
         )
 
     order.status = "cancelled"
-    order.completition_time = timezone.now()
-    order.save(update_fields=["status", "completition_time"])
+    order.completition_date = timezone.now()
+    order.save(update_fields=["status", "completition_date"])
 
     return Response(
         status=status.HTTP_200_OK
     )
+
+@api_view([ "POST" ])
+@access_token_required
+def place_new_order(request: Request):    
+    serializer = PlaceOrderSerializer(data=request.data, context={ "user": request.user })
+    if not serializer.is_valid():
+        return Response(
+            {
+                "error": serializer.errors[0]
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        order = serializer.save()
+    except serializers.ValidationError as e:
+        return Response(
+            {
+                "error": e.detail
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    return Response(
+        {
+            "order_id": order.id
+        },
+        status=status.HTTP_201_CREATED
+    )       
