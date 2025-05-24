@@ -14,3 +14,8 @@ admin.site.register(md.OrderItemIngredient)
 admin.site.register(md.DeliveryAddress)
 
 admin.site.register(md.PaymentMethod)
+
+admin.site.register(md.Tag)
+admin.site.register(md.PizzaTag)
+
+admin.site.register(md.Restaurant)

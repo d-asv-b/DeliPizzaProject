@@ -84,7 +84,7 @@ class DeliveryAddressSerializer(serializers.ModelSerializer):
         response = requests.get("https://geocode-maps.yandex.ru/v1/", params={
             "apikey": settings.YANDEX_MAPS_API_KEY,
             "format": "json",
-            "geocode": f"{validated_data["city"]} {validated_data["street"]} {validated_data["building_number"]}".replace(" ", "+"),
+            "geocode": f'{validated_data["city"]} {validated_data["street"]} {validated_data["building_number"]}'.replace(" ", "+"),
             "lang": "ru_RU",
         })
 
@@ -142,7 +142,7 @@ class EditDeliveryAddressSerializer(serializers.ModelSerializer):
         response = requests.get("https://geocode-maps.yandex.ru/v1/", params={
             "apikey": settings.YANDEX_MAPS_API_KEY,
             "format": "json",
-            "geocode": f"{validated_data["city"]} {validated_data["street"]} {validated_data["building_number"]}".replace(" ", "+"),
+            "geocode": f'{validated_data["city"]} {validated_data["street"]} {validated_data["building_number"]}'.replace(" ", "+"),
             "lang": "ru_RU",
         })
 
@@ -270,3 +270,12 @@ class OrderHistorySerializer(serializers.ModelSerializer):
             for add in item.orderitemingredient_set.all():
                 total += add.ingredient.price
         return total
+
+
+class OrderStatusSerializer(serializers.ModelSerializer):
+    delivery_coordinates = serializers.CharField(source="address.coordinates")
+    restaurant_coordinates = serializers.CharField(source="restaurant.coordinates")
+
+    class Meta:
+        model = Order
+        fields = [ "id", "delivery_coordinates", "restaurant_coordinates", "status", "delivery_expected", "creation_date", "completition_date" ]
