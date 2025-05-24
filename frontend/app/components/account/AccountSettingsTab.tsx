@@ -8,6 +8,7 @@ import { updateUserData, updateUserPassword } from "~/api/account";
 import { AxiosError } from "axios";
 import type { UpdateUserDataRequest } from "~/models/account";
 import createSHA512Hash from "~/utils/hash";
+import Button from "../general/Button";
 
 const fieldSettings: FieldSetting[] = [
     { title: "Имя", key: "name", label: "Введите новое имя", validate: validateName },
@@ -15,21 +16,6 @@ const fieldSettings: FieldSetting[] = [
     { title: "Адрес эл. почты", key: "email", label: "Введите новую электронную почту", validate: validateEmail },
     { title: "День рождения", key: "birthdayDate", label: "Введите новый день рождения", validate: () => "" },
 ];
-
-type EditBtnProps = {
-    onClick: () => void;
-};
-
-function EditBtn({ onClick }: EditBtnProps) {
-    return (
-        <button
-            className="p-2 rounded-xl hover:cursor-pointer bg-primary hover:bg-btn-primary-hover active:bg-btn-primary-click text-text-primary"
-            onClick={onClick}
-        >
-            <MdEdit size={20} />
-        </button>
-    );
-}
 
 export default function AccountSettingsTab() {
     let { user, setUserData } = useAuthContext();
@@ -57,7 +43,7 @@ export default function AccountSettingsTab() {
                             } as UpdateUserDataRequest
                         );
 
-                        setUserData(result.userData);
+                        setUserData(result);
                         close(id);
                         
                         return null;
@@ -127,13 +113,16 @@ export default function AccountSettingsTab() {
                                         user[setting.key]?.toString() || "-"
                                     }
                                 </div>
-                                <EditBtn
+                                
+                                <Button
                                     onClick={
                                         () => {
                                             openFieldModal(setting);
                                         }
                                     }
-                                />
+                                >
+                                    <MdEdit size={20}/>
+                                </Button>
                             </div>
                         )
                     )

@@ -1,9 +1,14 @@
+import { useCloseModal, useModal } from "~/contexts/ModalHost";
 import type { Pizza } from "~/models/pizza";
+import PizzaInfoModal from "../modals/PizzaInfoModal";
+import { useCartContext } from "~/contexts/CartContext";
+import toast from "react-hot-toast";
 
 export default function PizzaCard({ pizza }: {pizza: Pizza}) {
-    function addToCart() {
-        // TODO
-    }
+    const openModal = useModal();
+    const closeModal = useCloseModal();
+
+    const { addItem } = useCartContext();
 
     return (
         <div className="flex flex-row rounded-xl p-5 min-h sm:min-h-44 bg-secondary text-text-secondary">
@@ -23,13 +28,38 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
                 </div>
 
                 <div className="flex flex-row w-full items-center align-middle justify-between">
-                    <div className="text-xl font-bold font-bounded">
+                    <div className="text-xl font-bold font-bubble-sans">
                         {pizza.basePrice}₽
                     </div>
                     <div>
                         <button
                             className="rounded-xl p-3 font-bounded cursor-pointer bg-primary text-text-primary hover:bg-primary/85"
-                            onClick={addToCart}
+                            onClick={ 
+                                () => {
+                                    const modalId = openModal(
+                                        <PizzaInfoModal
+                                            onClose={
+                                                () => {
+                                                    closeModal(modalId);
+                                                }
+                                            }
+                                            onSave={
+                                                (item: CartItem) => {
+                                                    try {
+                                                        addItem(item);
+                                                        toast.success("Пицци добавлена в корзину!");
+                                                        closeModal(modalId);
+                                                    }
+                                                    catch {
+                                                        toast.error("Произошла ошибка. Пожалуйста, перезагрузите страницу и попробуйте снова!");
+                                                    }
+                                                }
+                                            }
+                                            pizzaData={ pizza }
+                                        />
+                                    )
+                                }
+                            }
                         >
                             В корзину
                         </button>

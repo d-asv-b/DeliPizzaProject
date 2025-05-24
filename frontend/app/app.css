@@ -10,9 +10,28 @@
     src: url("/fonts/Bounded-Variable.ttf") format(truetype);
 }
 
+@font-face {
+    font-family: "BubbleSans";
+    src: url("/fonts/BubbleSans-Regular.otf") format(truetype);
+}
+
 @theme {
     --font-caveat: "CaveatBrush";
     --font-bounded: "Bounded";
+    --font-bubble-sans: "BubbleSans";
+
+    --animate-rotate-arrow-up: rotate-up 0.2s ease forwards;
+    --animate-rotate-arrow-down: rotate-down 0.2s ease forwards;
+
+    @keyframes rotate-up {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(180deg); }
+    }
+
+    @keyframes rotate-down {
+        0% { transform: rotate(180deg); }
+        100% { transform: rotate(0deg); }
+    }
 }
 
 * {
@@ -32,6 +51,7 @@
     --color-primary: #E48525;
     --color-text-primary: #000;
 
+    --color-btn-primary-disabled: #915f2c;
     --color-btn-primary-hover: #f29f4b;
     --color-btn-primary-click: #faad5f;
 
@@ -69,6 +89,7 @@
     --color-primary: #0ba13d;
     --color-text-primary: #000;
 
+    --color-btn-primary-disabled: #277541;
     --color-btn-primary-hover: #0a6b2a;
     --color-btn-primary-click: #084d1e;
 

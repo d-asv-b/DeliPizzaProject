@@ -22,4 +22,4 @@ export interface PizzaListRequestData {
 
 export interface PizzaListResponseData {
     pizzaData: Pizza[]
-}
+};

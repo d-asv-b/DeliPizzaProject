@@ -19,7 +19,8 @@ from .models import RegistrationUserData, AuthorizationUserData, Pizza, Delivery
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
-    PaymentMethodSerializer, EditDeliveryAddressSerializer, CancelOrderSerializer
+    PaymentMethodSerializer, EditDeliveryAddressSerializer, CancelOrderSerializer, \ 
+    OrderStatusSerializer
 
 from .decorators import access_token_required
 
@@ -564,43 +565,36 @@ def get_orders_history(request: Request):
 
 @api_view([ "GET" ])
 @access_token_required
-def get_order_status(request: Request, order_id: str):
+def get_order_status(request: Request):
+    order_id = request.query_params.get("order_id")
+    if not order_id:
+        return Response(
+            {
+                "error": "Необходим ID заказа"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     try:
         order = Order.objects.get(id=order_id, customer=request.user)
     except Order.DoesNotExist:
         return Response(
-            {"error": "Заказ не найден."},
+            {
+                "error": "Заказ не найден."
+            },
             status=status.HTTP_404_NOT_FOUND
         )
     except Exception:
         return Response(
-            {"error": "Error on server. Please try again later"},
+            {
+                "error": "Error on server. Please try again later"
+            },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-    if order.is_completed:
-        status_text = "completed"
-    elif order.is_paid:
-        status_text = "paid"
-    else:
-        status_text = "created"
-
-    delivery_time = None
-    if hasattr(order, "expected_delivery_at") and order.expected_delivery_at:
-        delivery_time = order.expected_delivery_at
-    elif hasattr(order, "delivered_at") and order.delivered_at:
-        delivery_time = order.delivered_at
-    else:
-        if order.is_paid and not order.is_completed:
-            delivery_time = order.creation_date + timedelta(hours=1)
-
     return Response(
         {
-            "order_id": order.id,
-            "status": status_text,
-            "is_paid": order.is_paid,
-            "is_completed": order.is_completed,
-            "delivery_time": delivery_time
+            "order_status": OrderStatusSerializer(order).data
         },
         status=status.HTTP_200_OK
     )
@@ -691,9 +685,18 @@ def remove_payment_method(request: Request):
         status=status.HTTP_200_OK
     )
 
-@api_view(["POST"])                       # POST ‒ чтобы явно изменить ресурс
+@api_view([ "DELETE" ])
 @access_token_required
-def cancel_order(request: Request, order_id: str):
+def cancel_order(request: Request):
+    order_id = request.query_params.get("order_id")
+    if not order_id:
+        return Response(
+            {
+                "error": "Необходим ID заказа"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+      
     try:
         order = Order.objects.get(id=order_id, customer=request.user)
     except Order.DoesNotExist:
