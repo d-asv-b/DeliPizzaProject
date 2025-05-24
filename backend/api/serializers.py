@@ -1,10 +1,13 @@
 from django.conf import settings
 import requests
+from django.db import transaction
 from rest_framework import serializers
 
 from djangorestframework_camel_case.util import camel_to_underscore
 
-from .models import User, RegistrationUserData, AuthorizationUserData, \
+from .utils import parse_custom_delivery_time
+
+from .models import OrderItem, OrderItemIngredient, User, RegistrationUserData, AuthorizationUserData, \
     Ingredient, PizzaIngredient, Pizza, DeliveryAddress, PaymentMethod, Order
 
 from datetime import datetime
@@ -228,7 +231,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
         try:
             month, year = map(int, value.split("/"))
             if not (1 <= month <= 12):
-                raise serializers.ValidationError("Неверная срок действия карты.")
+                raise serializers.ValidationError("Неверный срок действия карты.")
 
             now = datetime.now()
             if year < (now.year % 100) or (year == (now.year % 100) and month < now.month):
@@ -279,3 +282,167 @@ class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [ "id", "delivery_coordinates", "restaurant_coordinates", "status", "delivery_expected", "creation_date", "completition_date" ]
+
+
+class IngredientModificationSerializer(serializers.Serializer):
+    add = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=Ingredient.objects.all()
+        ),
+        required=False
+    )
+    remove = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=Ingredient.objects.all()
+        ),
+        required=False,
+    )
+
+    def validate(self, data):
+        pizza = self.context.get("pizza")
+        if not pizza:
+            raise serializers.ValidationError("Пицца не указана в контексте.")
+
+        pizza_ingredients = PizzaIngredient.objects.filter(pizza=pizza)
+
+        add_ingredients_ids = set(ingr.ingredient_id for ingr in pizza_ingredients if ingr.is_additional)
+        main_ingredients_ids = set(ingr.ingredient_id for ingr in pizza_ingredients if not ingr.is_additional)
+
+        for ingredient in data.get("add", []):
+            if ingredient.id not in add_ingredients_ids:
+                raise serializers.ValidationError(
+                    f"Ингредиент {ingredient.id} нельзя добавить к этой пицце."
+                )
+
+        for ingredient in data.get('remove', []):
+            if ingredient.id not in main_ingredients_ids:
+                raise serializers.ValidationError(
+                    f"Ингредиент {ingredient.id} нельзя удалить из этой пиццы."
+                )
+
+        return data
+
+
+class CartItemSerializer(serializers.Serializer):
+    pizza_id = serializers.PrimaryKeyRelatedField(
+        queryset=Pizza.objects.all(),
+        allow_null=False,
+    )
+    count = serializers.IntegerField(
+        min_value=1,
+        required=True
+    )
+
+    def to_internal_value(self, data):
+        internal = super().to_internal_value(data)
+
+        self._pizza = internal['pizza_id']
+        self._raw_ingredients_data = data.get("ingredients", {})
+
+        return {
+            **internal,
+            "ingredients": self._raw_ingredients_data
+        }
+    
+    def validate(self, data):
+        raw_ingredients_data = data["ingredients"]
+
+        serializer = IngredientModificationSerializer(
+            context={"pizza": self._pizza}
+        )
+        validated_ingredients = serializer.run_validation(raw_ingredients_data)
+
+        data["ingredients"] = validated_ingredients
+        return data
+
+
+class PlaceOrderSerializer(serializers.Serializer):
+    cart = CartItemSerializer(
+        many=True,
+        required=True,
+        allow_empty=False
+    )
+    delivery_address_id = serializers.PrimaryKeyRelatedField(
+        queryset=DeliveryAddress.objects.all(),
+        required=True,
+        allow_null=False,
+    )
+    payment_method_id = serializers.PrimaryKeyRelatedField(
+        queryset=PaymentMethod.objects.all(),
+        required=True,
+        allow_null=False,
+    )
+    delivery_time = serializers.CharField(
+        max_length=100,
+        required=True
+    )
+
+    def validate_cart(self, value):
+        if not value:
+            raise serializers.ValidationError("Корзина не может быть пустой.")
+
+        return value
+    
+    def create(self, validated_data):
+        user = self.context.get("user")
+
+        delivery_address = validated_data["delivery_address_id"]
+        payment_method = validated_data["payment_method_id"]
+
+        if delivery_address.user != user:
+            raise serializers.ValidationError({ "deliveryAddressId": "Указан неверный адрес доставки." })
+        if payment_method.user != user:
+            raise serializers.ValidationError({ "paymentMethodId": "Указан неверный метод оплаты." })
+
+        delivery_time_str = validated_data["delivery_time"]
+        try:
+            parsed_delivery_datetime = parse_custom_delivery_time(delivery_time_str)
+        except serializers.ValidationError as e:
+            raise serializers.ValidationError({ "delivery_time": e.detail })
+
+        cart_data = validated_data["cart"]
+
+        with transaction.atomic():
+            order = Order.objects.create(
+                customer=user,
+                # status=Order.Status.CREATED,
+                status=Order.Status.PAID, 
+                address=delivery_address,
+                delivery_expected=parsed_delivery_datetime,
+            )
+
+            for cart_item_data in cart_data:
+                pizza_obj = cart_item_data["pizza_id"] 
+                count = cart_item_data["count"]
+                ingredients_modifications_data = cart_item_data["ingredients"]
+                
+                add_ingredients = ingredients_modifications_data.get("add", [])
+                main_ingredients = ingredients_modifications_data.get("remove", [])
+
+                order_item = OrderItem.objects.create(
+                    order=order,
+                    pizza=pizza_obj,
+                    count=count
+                )
+                
+                if add_ingredients:
+                    to_create = [
+                        OrderItemIngredient(
+                            order_item=order_item,
+                            ingredient=ing,
+                            state="add"
+                        ) for ing in add_ingredients
+                    ]
+                    OrderItemIngredient.objects.bulk_create(to_create)
+
+                if main_ingredients:
+                    to_create = [
+                        OrderItemIngredient(
+                            order_item=order_item,
+                            ingredient=ing,
+                            state="remove"
+                        ) for ing in main_ingredients
+                    ]
+                    OrderItemIngredient.objects.bulk_create(to_create)
+            
+            return order

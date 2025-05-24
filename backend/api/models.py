@@ -179,6 +179,7 @@ class Order(models.Model):
         customer            пользователь, создавший заказ
         status              статус заказа
         creation_date       дата создания заказа
+        total_price         полная стоимость заказа
         delivery_expected   дата и время доставки, выбранные пользователем
         completition_date   дата завершения/отмены заказа
     """
@@ -192,18 +193,19 @@ class Order(models.Model):
         COMPLETED = "completed"
         CANCELLED = "cancelled"
 
-    id = models.CharField(max_length=22, primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.CREATED
     )
+    total_price = models.IntegerField(default=0)
     address = models.ForeignKey(DeliveryAddress, on_delete=models.PROTECT, blank=True, null=True)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.PROTECT, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
-    delivery_expected = models.DateField(default=timezone.now())
-    completition_date = models.DateField(default=timezone.now())
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.PROTECT, blank=True, null=True, default=1)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    delivery_expected = models.DateTimeField(default=timezone.now())
+    completition_date = models.DateTimeField(null=True)
 
     @property
     def can_be_cancelled(self) -> bool:
@@ -218,6 +220,7 @@ class OrderItem(models.Model):
     """
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     pizza = models.ForeignKey(Pizza, on_delete=models.PROTECT)
+    count = models.IntegerField(default=1)
 
 
 class OrderItemIngredient(models.Model):
@@ -226,8 +229,17 @@ class OrderItemIngredient(models.Model):
         order_item          к какой заказанной пицце относится
         ingredient          какой ингредиент
     """
+    class Status(models.TextChoices):
+        ADD = "add"
+        REMOVE = "remove"
+
     order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
+    state = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.ADD
+    )
 
 
 class PaymentMethod(models.Model):
