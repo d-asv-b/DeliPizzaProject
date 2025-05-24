@@ -205,12 +205,9 @@ class Order(models.Model):
     delivery_expected = models.DateField(default=timezone.now())
     completition_date = models.DateField(default=timezone.now())
 
-    is_cancelled = models.BooleanField(default=False)
-    cancelled_at = models.DateTimeField(null=True, blank=True)
-
     @property
     def can_be_cancelled(self) -> bool:
-        return not self.is_completed and not self.is_cancelled
+        return self.status == "created" or self.status == "paid"
 
 
 class OrderItem(models.Model):

@@ -13,13 +13,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 from backend import settings
-from datetime import timedelta
 
 from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress, PaymentMethod, Order
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
-    PaymentMethodSerializer, EditDeliveryAddressSerializer, CancelOrderSerializer, \ 
+    PaymentMethodSerializer, EditDeliveryAddressSerializer, \
     OrderStatusSerializer
 
 from .decorators import access_token_required
@@ -711,11 +710,10 @@ def cancel_order(request: Request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    order.is_cancelled = True
-    order.cancelled_at = timezone.now()
-    order.save(update_fields=["is_cancelled", "cancelled_at"])
+    order.status = "cancelled"
+    order.completition_time = timezone.now()
+    order.save(update_fields=["status", "completition_time"])
 
     return Response(
-        CancelOrderSerializer(order).data,
         status=status.HTTP_200_OK
     )
