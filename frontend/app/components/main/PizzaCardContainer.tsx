@@ -31,7 +31,7 @@ export default function PizzaCardContainer() {
                     </div>
                 </div>
                 :
-                pizzaList.length ?
+                pizzaList && pizzaList.length ?
                 <div className="grid w-full sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-1 justify-center align-top max-h-1/12">
                     {
                         pizzaList.map(pizza => (

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import ThemeSwitch from "./ThemeSwitch";
 import { useAuthContext } from "~/contexts/AuthContext";
+import { useCartTotal } from "~/hooks/useCartTotal";
 
 export default function Header() {
     const [showSettings, updShowSettings] = useState(false);
@@ -26,6 +27,8 @@ export default function Header() {
         })
     }, []);
 
+    const totalCartPrice = useCartTotal();
+
     return (
         <div className="flex flex-row w-full max-h-20 bg-header text-text-header">
             <div className="flex flex-row items-center pl-5">
@@ -33,8 +36,13 @@ export default function Header() {
             </div>
             
             <div className="flex flex-row align-middle w-full justify-end">
-                <div className="flex flex-row items-center py-2 px-4 hover:bg-white/30 duration-500">
-                    <div className="font-semibold">Корзина</div>
+                <div className="flex flex-row items-center py-2 px-4 h-full hover:bg-white/30 duration-500 cursor-pointer">
+                    <div 
+                        className="font-semibold"
+                        onClick={ () => navigate("/cart")  }
+                    >
+                        { totalCartPrice ? <span className="font-bubble-sans">{ totalCartPrice }₽</span> : "Корзина" }
+                    </div>
                     <RiShoppingBasketFill size={24} className="mx-1"/>
                 </div>
 
@@ -42,7 +50,7 @@ export default function Header() {
 
                 <div className="relative">
                 <div
-                    className="flex flex-row items-center py-2 px-4 hover:bg-white/30 duration-500 cursor-pointer"
+                    className="flex flex-row items-center py-2 px-4 h-full hover:bg-white/30 duration-500 cursor-pointer"
                     onClick={() => updShowSettings((prev) => !prev)}
                 >
                     <div className="font-semibold">Настройки</div>

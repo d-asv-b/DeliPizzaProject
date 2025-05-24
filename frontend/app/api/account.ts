@@ -2,32 +2,32 @@ import type { UpdateUserDataRequest, UpdateUserPwdRequest, UserProfileInfoRespon
 import api from ".";
 import type { UserPublicInfo } from "~/models/auth";
 
-export async function getUserProfileInfo(): Promise<UserProfileInfoResponse> {
-    const { data: payload } = await api.get(
+export async function getUserProfileInfo(): Promise<UserPublicInfo> {
+    const response = await api.get<UserProfileInfoResponse>(
         "/account/profile"
     );
 
-    return payload;
+    return response.data.userData;
 }
 
 export async function updateUserData(
     data: UpdateUserDataRequest
-): Promise<UserProfileInfoResponse> {
-    const { data: payload } = await api.patch(
+): Promise<UserPublicInfo> {
+    const response = await api.patch<UserProfileInfoResponse>(
         "/account/update_data",
         data
     );
 
-    return payload;
+    return response.data.userData;
 }
 
 export async function updateUserPassword(
     data: UpdateUserPwdRequest
 ): Promise<UserPublicInfo> {
-    const { data: payload } = await api.patch(
+    const response = await api.patch<UserProfileInfoResponse>(
         "/account/update_password",
         data
     );
 
-    return payload;
+    return response.data.userData;
 }

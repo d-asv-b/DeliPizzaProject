@@ -141,20 +141,69 @@ class PizzaIngredient(models.Model):
     is_additional = models.BooleanField()
 
 
+class Tag(models.Model):
+    value = models.CharField(max_length=20)
+
+
+class PizzaTag(models.Model):
+    pizza = models.ForeignKey(Pizza, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+
+class DeliveryAddress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    city = models.CharField()
+    street = models.CharField()
+    building_number = models.CharField()
+    apartment_number = models.CharField(default="")
+    entrance_number = models.CharField(default="")
+    intercom = models.CharField(default="")
+    comment = models.CharField(max_length=128, default="")
+    is_default = models.BooleanField()
+    coordinates = models.CharField(default="")
+
+
+class Restaurant(models.Model):
+    """
+        name                название пиццерии
+        coordinates         координаты пиццерии
+    """
+    name = models.CharField()
+    coordinates = models.CharField()
+
+
 class Order(models.Model):
     """
     Поля класса
         id
         customer            пользователь, создавший заказ
-        is_paid             оплачен ли заказ
-        is_completed        доставлен ли заказ
+        status              статус заказа
         creation_date       дата создания заказа
+        delivery_expected   дата и время доставки, выбранные пользователем
+        completition_date   дата завершения/отмены заказа
     """
+    class Status(models.TextChoices):
+        CREATED = "created"
+        PAID = "paid"
+        PENDING = "penging"
+        COOKING = "cooking"
+        COOKED = "cooked"
+        DELIVERING = "delivering"
+        COMPLETED = "completed"
+        CANCELLED = "cancelled"
+
     id = models.CharField(max_length=22, primary_key=True)
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
-    is_paid = models.BooleanField()
-    is_completed = models.BooleanField()
-    creation_date = models.DateField()
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.CREATED
+    )
+    address = models.ForeignKey(DeliveryAddress, on_delete=models.PROTECT, blank=True, null=True)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.PROTECT, blank=True, null=True)
+    creation_date = models.DateField(auto_now_add=True)
+    delivery_expected = models.DateField(default=timezone.now())
+    completition_date = models.DateField(default=timezone.now())
 
 
 class OrderItem(models.Model):
@@ -175,19 +224,6 @@ class OrderItemIngredient(models.Model):
     """
     order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
-
-
-class DeliveryAddress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    city = models.CharField()
-    street = models.CharField()
-    building_number = models.CharField()
-    apartment_number = models.CharField(default="")
-    entrance_number = models.CharField(default="")
-    intercom = models.CharField(default="")
-    comment = models.CharField(max_length=128, default="")
-    is_default = models.BooleanField()
-    coordinates = models.CharField(default="")
 
 
 class PaymentMethod(models.Model):

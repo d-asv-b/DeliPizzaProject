@@ -20,7 +20,7 @@ export function getUserDataRequestPromise(): Promise<UserPublicInfo | null> | nu
 async function fetchUserData(): Promise<UserPublicInfo | null> {
     try {
         let userProfileData = await getUserProfileInfo();
-        return userProfileData.userData;
+        return userProfileData;
     }
     catch {
         return null;

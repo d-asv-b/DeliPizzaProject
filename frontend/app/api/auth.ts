@@ -1,28 +1,28 @@
 import type { AuthRequestData, AuthResponseData, RefreshTokenResponseData, RegRequestData, RegResponseData } from "~/models/auth";
 import api from ".";
 
-export async function refreshTokenPair(): Promise<RefreshTokenResponseData> {
-    const { data: payload } = await api.post<RefreshTokenResponseData>(
+export async function refreshTokenPair(): Promise<string> {
+    const response = await api.post<RefreshTokenResponseData>(
         "/account/refresh_token",
     );
 
-    return payload;
+    return response.data.accessToken;
 }
 
 export async function authenticateUser(data: AuthRequestData): Promise<AuthResponseData> {
-    const { data: payload } = await api.post<AuthResponseData>(
+    const response = await api.post<AuthResponseData>(
         "/account/sign_in",
         data
     );
 
-    return payload;
+    return response.data;
 }
 
 export async function registerUser(data: RegRequestData): Promise<RegResponseData> {
-    const { data: payload } = await api.post<RegResponseData>(
+    const response = await api.post<RegResponseData>(
         "/account/sign_up",
         data
     );
 
-    return payload;
+    return response.data;
 }
