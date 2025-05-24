@@ -38,7 +38,7 @@ class PizzaSerializer(serializers.ModelSerializer):
     def get_main_ingredients(self, obj):
         pizza_ingredients = PizzaIngredient.objects.filter(pizza=obj, is_additional=False)
         return PizzaIngredientSerializer(pizza_ingredients, many=True).data
-    
+
     def get_additional_ingredients(self, obj):
         pizza_ingredients = PizzaIngredient.objects.filter(pizza=obj, is_additional=True)
         return PizzaIngredientSerializer(pizza_ingredients, many=True).data
@@ -95,7 +95,7 @@ class DeliveryAddressSerializer(serializers.ModelSerializer):
             validated_data["coordinates"] = coords
         except Exception:
             raise Exception("Такой адрес не найден")
-        
+
         return super().create(validated_data)
 
 
@@ -103,7 +103,7 @@ class EditDeliveryAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryAddress
         fields = [ "city", "street", "building_number", "apartment_number", "entrance_number", "intercom", "comment", "coordinates" ]
-    
+
     def validate_city(self, value):
         if not value or len(value.strip()) < 2:
             raise serializers.ValidationError("Город должен содержать минимум 2 символа.")
@@ -135,7 +135,7 @@ class EditDeliveryAddressSerializer(serializers.ModelSerializer):
         if value and not value.isdigit():
             raise serializers.ValidationError("Домофон должен быть числом.")
         return value
-    
+
     def update(self, instance, validated_data):
         validated_data["user"] = self.context["user"]
 
@@ -174,9 +174,9 @@ class UserDataUpdateSerializer(serializers.ModelSerializer):
 
         if new_value is None:
             return serializers.ValidationError({ field_to_update: "Должно быть указано изменяемое поле" })
-        
+
         return data
-    
+
     def update(self, instance: User, validated_data):
         field = validated_data["field_name"]
         value = validated_data[camel_to_underscore(field)]
@@ -198,13 +198,13 @@ class PasswordUpdateSerializer(serializers.ModelSerializer):
     def validate_old_password(self, value):
         if not self.instance.check_password(value):
             raise serializers.ValidationError("Неправильный пароль.")
-        
+
         return value
 
     def validate_new_password(self, value):
         if len(value) != 128:
             raise serializers.ValidationError("Неправильные параметры запроса.")
-        
+
         return value
 
     def update(self, instance: User, validated_data):
@@ -229,7 +229,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
             month, year = map(int, value.split("/"))
             if not (1 <= month <= 12):
                 raise serializers.ValidationError("Неверная срок действия карты.")
-            
+
             now = datetime.now()
             if year < (now.year % 100) or (year == (now.year % 100) and month < now.month):
                 raise serializers.ValidationError("Истёк срок действия карты.")
@@ -237,7 +237,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
             return {"month": month, "year": year}
         except ValueError:
             raise serializers.ValidationError("Срок действия карты должен быть в формате MM/YY.")
-        
+
     def create(self, validated_data):
         expiry = validated_data.pop("expiry_date")
 
@@ -247,7 +247,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
 
-      
+
 class OrderHistorySerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     amount = serializers.SerializerMethodField()

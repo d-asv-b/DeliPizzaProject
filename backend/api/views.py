@@ -13,13 +13,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 from backend import settings
-from datetime import timedelta
 
 from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress, PaymentMethod, Order
 from .serializers import ProfileDataSerializer, RegistrationDataSerializer, \
     AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
-    PaymentMethodSerializer, EditDeliveryAddressSerializer, OrderStatusSerializer
+    PaymentMethodSerializer, EditDeliveryAddressSerializer, \
+    OrderStatusSerializer
 
 from .decorators import access_token_required
 
@@ -681,5 +681,39 @@ def remove_payment_method(request: Request):
         {
             "payment_methods": PaymentMethodSerializer(methods, many=True).data
         },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "DELETE" ])
+@access_token_required
+def cancel_order(request: Request):
+    order_id = request.query_params.get("order_id")
+    if not order_id:
+        return Response(
+            {
+                "error": "Необходим ID заказа"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+      
+    try:
+        order = Order.objects.get(id=order_id, customer=request.user)
+    except Order.DoesNotExist:
+        return Response(
+            {"error": "Заказ не найден."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    if not order.can_be_cancelled:
+        return Response(
+            {"error": "Отменить нельзя: заказ уже обрабатывается, доставлен или отменён ранее."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    order.status = "cancelled"
+    order.completition_time = timezone.now()
+    order.save(update_fields=["status", "completition_time"])
+
+    return Response(
         status=status.HTTP_200_OK
     )
