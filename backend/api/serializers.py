@@ -7,7 +7,7 @@ from djangorestframework_camel_case.util import camel_to_underscore
 
 from .utils import parse_custom_delivery_time
 
-from .models import OrderItem, OrderItemIngredient, User, RegistrationUserData, AuthorizationUserData, \
+from .models import FavouriteTag, OrderItem, OrderItemIngredient, PizzaTag, Tag, User, RegistrationUserData, AuthorizationUserData, \
     Ingredient, PizzaIngredient, Pizza, DeliveryAddress, PaymentMethod, Order
 
 from datetime import datetime
@@ -30,13 +30,23 @@ class PizzaIngredientSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "icon_url", "price"]
 
 
+class PizzaTagSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="tag.id")
+    value = serializers.CharField(source="tag.value")
+
+    class Meta:
+        model = PizzaTag
+        fields = [ "id", "value" ]
+
+
 class PizzaSerializer(serializers.ModelSerializer):
     main_ingredients = serializers.SerializerMethodField()
     additional_ingredients = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Pizza
-        fields = ["id", "name", "icon_url", "description", "base_price", "main_ingredients", "additional_ingredients"]
+        fields = ["id", "name", "icon_url", "description", "short_description", "base_price", "main_ingredients", "additional_ingredients", "tags" ]
 
     def get_main_ingredients(self, obj):
         pizza_ingredients = PizzaIngredient.objects.filter(pizza=obj, is_additional=False)
@@ -45,6 +55,10 @@ class PizzaSerializer(serializers.ModelSerializer):
     def get_additional_ingredients(self, obj):
         pizza_ingredients = PizzaIngredient.objects.filter(pizza=obj, is_additional=True)
         return PizzaIngredientSerializer(pizza_ingredients, many=True).data
+    
+    def get_tags(self, obj):
+        pizza_tags = PizzaTag.objects.filter(pizza=obj)
+        return PizzaTagSerializer(pizza_tags, many=True).data
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -469,3 +483,17 @@ class PlaceOrderSerializer(serializers.Serializer):
                     OrderItemIngredient.objects.bulk_create(to_create)
             
             return order
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = [ "id", "value" ]
+
+
+class FavouriteTagSerializer(serializers.ModelSerializer):
+    tag_value = serializers.CharField(source='tag.value', read_only=True)
+
+    class Meta:
+        model = FavouriteTag
+        fields = ['id', 'tag', 'tag_value']

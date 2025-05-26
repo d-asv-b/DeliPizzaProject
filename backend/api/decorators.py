@@ -41,3 +41,23 @@ def access_token_required(view):
         return view(request, *args, **kwargs)
 
     return wrapper
+
+def access_token_optional(view):
+    def wrapper(request: Request, *args, **kwargs):
+        try:
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header or not auth_header.startswith("Bearer "):
+                raise Exception()
+
+            access_token = auth_header.split(" ")[1]
+
+            token = AccessToken(access_token)
+            user_id = token.get("user_id")
+            user_obj = User.objects.get(id=user_id)
+            request.user = user_obj
+        except Exception:
+            request.user = None
+        finally:
+            return view(request, *args, **kwargs)
+        
+    return wrapper

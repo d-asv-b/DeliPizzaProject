@@ -1,10 +1,16 @@
 from django.urls import path
-from . import views
+from django.contrib import admin
 
 from . import views as views
 
 urlpatterns = [
+    path("content_control/admin_page", admin.site.urls),
+
     path("pizzas/get_list/", views.PizzaListViewSet.as_view()),
+
+    path("tags/get_list", views.get_tags),
+    path("tags/get_favourites", views.get_favourite_tags),
+    path("tags/set_fav_tags",views.set_user_preferences),
 
     path("account/sign_up", views.user_sign_up_view),
     path("account/sign_in", views.user_sign_in_view),

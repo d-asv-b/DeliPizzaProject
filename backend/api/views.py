@@ -1,7 +1,9 @@
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.db.models import Count, Q
 
 from rest_framework import serializers
 from rest_framework.views import APIView
@@ -15,20 +17,20 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 
 from backend import settings
 
-from .models import RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress, PaymentMethod, Order
-from .serializers import PlaceOrderSerializer, ProfileDataSerializer, RegistrationDataSerializer, \
-    AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, \
+from .models import FavouriteTag, RegistrationUserData, AuthorizationUserData, Pizza, DeliveryAddress, PaymentMethod, Order, Tag
+from .serializers import FavouriteTagSerializer, PlaceOrderSerializer, ProfileDataSerializer, RegistrationDataSerializer, \
+    AuthorizationDataSerializer, PizzaSerializer, DeliveryAddressSerializer, TagSerializer, \
     UserDataUpdateSerializer, PasswordUpdateSerializer, OrderHistorySerializer, \
     PaymentMethodSerializer, EditDeliveryAddressSerializer, \
     OrderStatusSerializer
 
-from .decorators import access_token_required
+from .decorators import access_token_required, access_token_optional
 
 import requests
 
 User = get_user_model()
 
-
+@method_decorator(access_token_optional, name="dispatch")
 class PizzaListViewSet(APIView):
     def get(self, request: Request):
         try:
@@ -45,9 +47,20 @@ class PizzaListViewSet(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        queryset = Pizza.objects.all()[start:amount]
+        if request.user.is_authenticated:
+            user_preferences = FavouriteTag.objects.filter(user=request.user).values("tag_id")
+
+            pizzas = Pizza.objects.annotate(
+                matched_tags = Count(
+                    "pizzatag__tag",
+                    filter=Q(pizzatag__tag__in=user_preferences), 
+                    distinct=True
+                )
+            ).order_by("-matched_tags")
+        else:
+            pizzas = Pizza.objects.all()[start:amount]
             
-        serializer = PizzaSerializer(instance=queryset, many=True)
+        serializer = PizzaSerializer(pizzas, many=True)
         return Response(
             {
                 "pizza_data": serializer.data
@@ -379,7 +392,7 @@ def add_delivery_address(request: Request):
     if not serializer.is_valid():
         return Response(
             {
-                "error": serializer.errors[0]
+                "error": list(serializer.errors.values())[0]
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -442,7 +455,7 @@ def edit_delivery_address(request: Request):
     if not edit_serializer.is_valid():
         return Response(
             {
-                "error": edit_serializer.errors[0]
+                "error": list(edit_serializer.errors.values())[0]
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -633,7 +646,7 @@ def add_payment_method(request: Request):
     if not serializer.is_valid():
         return Response(
             {
-                "error": serializer.errors[0]
+                "error": list(serializer.errors.values())[0]
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -752,3 +765,78 @@ def place_new_order(request: Request):
         },
         status=status.HTTP_201_CREATED
     )       
+
+@api_view([ "GET" ])
+def get_tags(request: Request):
+    tags = Tag.objects.all()
+
+    return Response(
+        {
+            "tags": TagSerializer(tags, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "GET" ])
+@access_token_required
+def get_favourite_tags(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    favourite_tags = Tag.objects.filter(
+        favouritetag__user=request.user
+    ).distinct()
+    return Response(
+        {
+            "tags": TagSerializer(favourite_tags, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view([ "PATCH" ])
+@access_token_required
+def set_user_preferences(request: Request):
+    if not isinstance(request.user, User):
+        return Response(
+            {"error": "Error on server. Please try again later"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    tag_ids = request.data.get("tag_ids")
+
+    if not isinstance(tag_ids, list):
+        return Response(
+            {
+                "error": "tag_ids должен быть списком."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    existing_tag_ids = set(
+        FavouriteTag.objects.filter(
+            user=request.user,
+            tag_id__in=tag_ids
+        ).values_list(
+            "tag_id",
+            flat=True
+        )
+    )
+
+    new_tag_ids = set(tag_ids).difference(existing_tag_ids)
+    valid_new_tags = Tag.objects.filter(id__in=new_tag_ids)
+
+    for tag in valid_new_tags:
+        FavouriteTag.objects.create(user=request.user, tag=tag)
+
+    user_fav_tags = Tag.objects.filter(
+        favouritetag__user=request.user,
+    ).distinct()
+    return Response(
+        {
+            "tags": TagSerializer(user_fav_tags, many=True).data
+        },
+        status=status.HTTP_200_OK
+    )

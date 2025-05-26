@@ -124,7 +124,8 @@ class Pizza(models.Model):
     """
     name = models.CharField(max_length=20)
     icon_url = models.CharField(max_length=128)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=1024)
+    short_description = models.CharField(max_length=128, default="")
     base_price = models.IntegerField()
     ingredients = models.ManyToManyField(Ingredient, through="PizzaIngredient")
 
@@ -150,16 +151,21 @@ class PizzaTag(models.Model):
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 
+class FavouriteTag(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+
 class DeliveryAddress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     city = models.CharField()
     street = models.CharField()
     building_number = models.CharField()
-    apartment_number = models.CharField(default="")
-    entrance_number = models.CharField(default="")
-    intercom = models.CharField(default="")
-    comment = models.CharField(max_length=128, default="")
-    is_default = models.BooleanField()
+    apartment_number = models.CharField(default="", blank=True)
+    entrance_number = models.CharField(default="", blank=True)
+    intercom = models.CharField(default="", blank=True)
+    comment = models.CharField(max_length=128, default="", blank=True)
+    is_default = models.BooleanField(default=False)
     coordinates = models.CharField(default="")
 
 
@@ -204,7 +210,7 @@ class Order(models.Model):
     address = models.ForeignKey(DeliveryAddress, on_delete=models.PROTECT, blank=True, null=True)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.PROTECT, blank=True, null=True, default=1)
     creation_date = models.DateTimeField(auto_now_add=True)
-    delivery_expected = models.DateTimeField(default=timezone.now())
+    delivery_expected = models.DateTimeField(default=timezone.now)
     completition_date = models.DateTimeField(null=True)
 
     @property
