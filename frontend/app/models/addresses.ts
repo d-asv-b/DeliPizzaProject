@@ -2,7 +2,7 @@ export interface DeliveryAddressRequest {
     city: string;
     street: string;
     buildingNumber: string;
-    appartmentNumber: string;
+    apartmentNumber: string;
 };
 
 export interface EditDeliveryAddressRequest {
@@ -15,7 +15,7 @@ export interface DeliveryAddress {
     city: string;
     street: string;
     buildingNumber: string;
-    appartmentNumber: string;
+    apartmentNumber: string;
     entranceNumber: string;
     intercom: string;
     comment: string

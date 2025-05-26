@@ -1,9 +1,17 @@
 import { usePaymentMethods } from "~/contexts/PaymentMethodsContexts"
 import Button from "../general/Button";
 import { BiTrash } from "react-icons/bi";
+import { useCloseModal, useModal } from "~/contexts/ModalHost";
+import PaymentMethodModal from "../modals/NewPaymentModal";
+import { AxiosError } from "axios";
+import { addPaymentMethod, removePaymentMethod } from "~/api/payments";
+import DeletePaymentMethodModal from "../modals/DeletePaymentMethodModal";
 
 export default function AccountSettingsTab() {
-    const { methods } = usePaymentMethods();
+    const { methods, setMethods } = usePaymentMethods();
+
+    const openModal = useModal();
+    const closeModal = useCloseModal();
 
     return (
         <div className="flex flex-col items-center text-text-secondary gap-5">
@@ -20,7 +28,30 @@ export default function AccountSettingsTab() {
                             <Button
                                 onClick={
                                     () => {
-
+                                        const modalId = openModal(
+                                            <DeletePaymentMethodModal
+                                                onClose={ () => closeModal(modalId) }
+                                                onSave={ async () => {
+                                                    try {
+                                                        if (method.id) {
+                                                            const methodsList = await removePaymentMethod({ methodId: method.id });
+                                                            setMethods(methodsList);
+                                                        }
+                                                        else {
+                                                            return "Что-то пошло не так. Перезагрузите страницу и попробуйте снова.";
+                                                        }
+                                                    }
+                                                    catch(error) {
+                                                        if (error instanceof AxiosError && error.response && error.response.data.error) {
+                                                            return error.response.data.error;
+                                                        }
+                                                        else {
+                                                            return "Произошла ошибка...";
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        )
                                     }
                                 }
                             >
@@ -38,7 +69,27 @@ export default function AccountSettingsTab() {
             <Button
                 onClick={
                     () => {
-
+                        const modalId = openModal(
+                            <PaymentMethodModal
+                                onClose={ () => closeModal(modalId) }
+                                onSave={ 
+                                    async (newCard) => {
+                                        try {
+                                            const methodsList = await addPaymentMethod(newCard);
+                                            setMethods(methodsList);
+                                        }
+                                        catch(error) {
+                                            if (error instanceof AxiosError && error.response && error.response.data.error) {
+                                                return error.response.data.error;
+                                            }
+                                            else {
+                                                return "Произошла ошибка...";
+                                            }
+                                        }
+                                    }
+                                }
+                            />
+                        )
                     }
                 }
             >

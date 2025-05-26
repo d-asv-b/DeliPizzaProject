@@ -10,8 +10,7 @@ interface PaymentMethod {
 interface CreatePaymentMethodRequest {
     cardHolder: string;
     cardLast4Numbers: string;
-    expiryMonth: number;
-    expiryYear: number;
+    expiryDate: string;
 };
 
 interface DeletePaymentMethodRequest {

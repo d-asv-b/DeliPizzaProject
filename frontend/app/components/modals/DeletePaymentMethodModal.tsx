@@ -2,25 +2,24 @@ import toast from "react-hot-toast";
 import Button from "../general/Button";
 import BasicModalWindow from "./BasicModal";
 
-type AddressDeleteModalProps = {
+type PaymentMethodModalProps = {
     onClose: () => void;
     onSave: () => Promise<string>;
 };
 
-export default function DeleteAddressModal({ onClose, onSave }: AddressDeleteModalProps) {
+export default function DeletePaymentMethodModal({ onClose, onSave }: PaymentMethodModalProps) {
     return (
         <BasicModalWindow
-            title="Удалить адрес доставки"
+            title="Удалить карту"
             onClose={ onClose }
             isOpen={true}
         >
             <div className="flex flex-col justify-center gap-2">
                 <div>
-                    Вы уверены, что хотите удалить этот адрес доставки?
+                    Вы уверены, что хотите удалить эту?
                 </div>
-                <div className="flex flex-row grow justify-center gap-3">
-                    <Button
-                        extraClasses="grow bg-red-500 hover:bg-red-700 active:bg-red-800"
+                <div className="flex flex-row justify-center gap-3">
+                    <Button 
                         onClick={ async () => {
                             const result = await onSave();
                             if (result) {
@@ -35,7 +34,6 @@ export default function DeleteAddressModal({ onClose, onSave }: AddressDeleteMod
                     </Button>
 
                     <Button
-                    extraClasses="grow"
                         onClick={ onClose }
                     >
                         Отмена

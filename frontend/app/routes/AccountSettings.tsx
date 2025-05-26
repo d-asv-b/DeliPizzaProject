@@ -1,34 +1,32 @@
-import { useAuthContext } from "~/contexts/AuthContext"
-import { IoArrowBack } from "react-icons/io5";
-import { useEffect, useState } from "react";
-
 import { MdAccountCircle, MdCreditCard, MdLocationPin, MdHistory } from "react-icons/md";
-import { Link, Route, Routes, useLocation } from "react-router";
+import { Link, Route, Routes, useLocation, useNavigate } from "react-router";
 import AccountSettingsTab from "~/components/account/AccountSettingsTab";
 import DeliveryAdressesTab from "~/components/account/DeliveryAdressesTab";
 import PaymentMethodsTab from "~/components/account/PaymentMethodsTab";
 import OrdersHistoryTab from "~/components/account/OrdersHistoryTab";
+import Button from "~/components/general/Button";
+import { useState } from "react";
 
 const sidebarTabs = [
     {
         title: "Настройки аккаунта",
         url: "settings",
-        icon: <MdAccountCircle/>
+        icon: <MdAccountCircle size={ 30 }/>
     },
     {
         title: "Методы оплаты",
         url: "payment",
-        icon: <MdCreditCard/>
+        icon: <MdCreditCard size={ 30 }/>
     },
     {
         title: "Адреса доставки",
         url: "delivery",
-        icon: <MdLocationPin/>
+        icon: <MdLocationPin size={ 30 }/>
     },
     {
         title: "История заказов",
         url: "history",
-        icon: <MdHistory/>
+        icon: <MdHistory size={ 30 }/>
     }
 ];
 
@@ -41,23 +39,26 @@ export default function AccountSettings() {
     })();
 
     let [ activeTab, setActiveTab ] = useState(initialTabIndex);
+    const navigate = useNavigate();
 
     return (
         <div className="h-full w-full flex justify-center items-center bg-transparent">
-            <div className="flex flex-row h-5/6 w-5/6 rounded-3xl bg-secondary text-text-secondary">
-                <div className="flex flex-col h-full w-fit">
-                    <div className="flex lex-row pt-5 pl-5">
-                        <Link to={"/"}>
-                            <IoArrowBack size={ 50 } color="gray"/>
-                        </Link>
+            <div className="flex flex-col lg:flex-row h-full w-full rounded-none xl:h-5/6 xl:w-5/6 2xl:w-3/4 3xl:w-2/3 xl:rounded-2xl bg-secondary text-text-secondary">
+                <div className="flex flex-col w-full lg:h-full lg:w-fit">
+                    <div className="flex flex-row p-5">
+                        <Button
+                            onClick={ () => navigate("/") }
+                        >
+                            На главную
+                        </Button>
                     </div>
-                    <div className="flex-row grow text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl my-5 pl-8 border-r-1 border-gray-300">
+                    <div className="flex flex-row lg:flex-col text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl my-5 lg:pl-8 lg:border-r-1 border-gray-300">
                         {
                             sidebarTabs.map((tab, idx) => (
                                 <Link
                                     key={ idx }
                                     to={ `/account/${ tab.url }` }
-                                    className={ `flex flex-row grow first:rounded-tl-2xl not-first:border-t-1 items-center gap-2 py-2 pl-2 pr-5 cursor-pointer border-gray-300 ${ idx === activeTab ? "text-sidebar-item-text-selected bg-sidebar-item-selected" : "text-sidebar-item-text" }` }
+                                    className={ `flex flex-row grow lg:first:rounded-tl-2xl  not-first:border-l-1 lg:not-first:border-l-0 lg:not-first:border-t-1 items-center gap-2 py-2 px-2 lg:px-5 cursor-pointer border-gray-300 ${ idx === activeTab ? "text-sidebar-item-text-selected bg-sidebar-item-selected" : "text-sidebar-item-text" }` }
                                     onClick={ 
                                         () => setActiveTab(idx)
                                     }
@@ -66,7 +67,7 @@ export default function AccountSettings() {
                                         { tab.icon }
                                     </div>
 
-                                    <div>
+                                    <div className="text-sm sm:text-md md:text-lg lg:text-xl xl:text-2xl font-semibold">
                                         { tab.title }
                                     </div>
                                 </Link>
@@ -75,7 +76,7 @@ export default function AccountSettings() {
                     </div>
                 </div>
                 <div className="flex flex-col h-full grow">
-                    <div className="text-lg md:text-xl xl:text-3xl pl-5 py-5">
+                    <div className="text-xl md:text-2xl xl:text-3xl font-bold pl-5 py-5">
                         { sidebarTabs[activeTab].title }
                     </div>
                     <div className="h-[90%] grow p-5">

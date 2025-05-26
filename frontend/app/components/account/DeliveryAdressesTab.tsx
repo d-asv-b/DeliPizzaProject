@@ -4,7 +4,7 @@ import Button from "../general/Button";
 import { BiTrash } from "react-icons/bi";
 import { useCloseModal, useModal } from "~/contexts/ModalHost";
 import DeliveryAddressModal from "../modals/AddressModal";
-import { addDeliveryAddress, editDeliveryAddress } from "~/api/addresses";import { AxiosError } from "axios";
+import { addDeliveryAddress, deleteDeliveryAddress, editDeliveryAddress } from "~/api/addresses";import { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import DeleteAddressModal from "../modals/AddressDeleteModal";
 
@@ -23,7 +23,7 @@ export default function AccountSettingsTab() {
                     addresses.map((address) => (
                         <div className="flex flex-row gap-1 items-center">
                             <div className="flex-grow">
-                                { `г. ${address.city}, ул. ${address.street}, д. ${address.buildingNumber}, кв./офис ${address.appartmentNumber}` }
+                                { `г. ${address.city}, ул. ${address.street}, д. ${address.buildingNumber}, кв./офис ${address.apartmentNumber}` }
                             </div>
                             <Button
                                 onClick={
@@ -73,8 +73,23 @@ export default function AccountSettingsTab() {
                                                     closeModal(id);
                                                 }}
                                                 onSave={ async () => {
-                                                    closeModal(id);
-                                                    return "";
+                                                    try {
+                                                        if (address.id) {
+                                                            const addressesList = await deleteDeliveryAddress({ addressId: address.id });
+                                                            setAddresses(addressesList);
+                                                        }
+                                                        else {
+                                                            return "Что-то пошло не так. Перезагрузите страницу и попробуйте снова.";
+                                                        }
+                                                    }
+                                                    catch(error) {
+                                                        if (error instanceof AxiosError && error.response && error.response.data.error) {
+                                                            return error.response.data.error;
+                                                        }
+                                                        else {
+                                                            return "Произошла ошибка...";
+                                                        }
+                                                    }
                                                 }}
                                             />
                                         )

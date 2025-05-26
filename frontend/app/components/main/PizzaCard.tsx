@@ -11,7 +11,7 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
     const { addItem } = useCartContext();
 
     return (
-        <div className="flex flex-row rounded-xl p-5 min-h sm:min-h-44 bg-secondary text-text-secondary">
+        <div className="flex flex-row rounded-xl p-5 min-h sm:min-h-55 bg-secondary text-text-secondary">
             <div className="p-5 items-center">
                 <img
                     className="min-w-20 min-h-20" 
@@ -24,7 +24,19 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
                 </div>
 
                 <div className="line-clamp-3 text-ellipsis py-0.5 min-h-15">
-                    {pizza.description}
+                    {pizza.shortDescription}
+                </div>
+
+                <div className="flex flex-row gap-1 p-1">
+                    { 
+                        pizza.tags.map(
+                            tag => (
+                                <div className="border-2 border-gray-600 rounded-2xl px-2 py-1 text-sm cursor-pointer">
+                                    { tag.value }
+                                </div>
+                            )
+                        )
+                    }
                 </div>
 
                 <div className="flex flex-row w-full items-center align-middle justify-between">

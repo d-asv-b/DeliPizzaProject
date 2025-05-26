@@ -12,6 +12,6 @@ export default [
     route("account/*", "routes/AccountSettings.tsx"),
 
     route("cart", "routes/Cart.tsx"),
-    route("order", "routes/OrderPage.tsx")
-
+    route("order", "routes/OrderPage.tsx"),
+    route("preferences", "routes/Preferences.tsx"),
 ] satisfies RouteConfig;

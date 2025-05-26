@@ -9,6 +9,7 @@ import { AxiosError } from "axios";
 import type { UpdateUserDataRequest } from "~/models/account";
 import createSHA512Hash from "~/utils/hash";
 import Button from "../general/Button";
+import { Link } from "react-router";
 
 const fieldSettings: FieldSetting[] = [
     { title: "Имя", key: "name", label: "Введите новое имя", validate: validateName },
@@ -128,14 +129,25 @@ export default function AccountSettingsTab() {
                     )
                 }
 
-                <button
-                    className="p-3 mx-5 mt-3 text-sm sm:text-md md:text-lg lg:text-xl font-semibold rounded-xl bg-primary hover:bg-btn-primary-hover active:bg-btn-primary-click text-text-primary"
+                <Button
+                    extraClasses="mx-5 py-3 mt-3"
+                    onClick={ () => {
+                        openPasswordModal();
+                    }}
+                >
+                    <Link to={"/preferences"}>
+                        Поменять любимые тэги
+                    </Link>
+                </Button>
+
+                <Button
+                    extraClasses="mx-5 py-3 mt-3"
                     onClick={ () => {
                         openPasswordModal();
                     }}
                 >
                     Сменить пароль
-                </button>
+                </Button>
             </div>
         </div>
     );

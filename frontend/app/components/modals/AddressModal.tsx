@@ -117,7 +117,7 @@ export default function DeliveryAddressModal({
     const [city, setCity] = useState(address.city || "");
     const [street, setStreet] = useState(address.street || "");
     const [buildingNumber, setBuilding] = useState(address.buildingNumber || "");
-    const [appartmentNumber, setApartment] = useState(address.appartmentNumber || "");
+    const [apartmentNumber, setApartment] = useState(address.apartmentNumber || "");
     const [entranceNumber, setEntrance] = useState(address.entranceNumber || "");
     const [intercom, setIntercom] = useState(address.intercom || "");
     const [comment, setComment] = useState(address.comment || "");
@@ -171,12 +171,12 @@ export default function DeliveryAddressModal({
             toast.error("Заполните обязательные поля!");
             return;
         }
-        else if (isNaN(+appartmentNumber) || isNaN(+entranceNumber) || isNaN(+intercom)) {
+        else if (isNaN(+apartmentNumber) || isNaN(+entranceNumber) || isNaN(+intercom)) {
             toast.error("Квартира/подъезд/домофон должны быть числами!");
             return;
         }
 
-        const error = await onSave({ city, street, buildingNumber, appartmentNumber, entranceNumber, intercom, comment, coordinates: coords.join(" ") });
+        const error = await onSave({ city, street, buildingNumber, apartmentNumber, entranceNumber, intercom, comment, coordinates: coords.join(" ") });
         if (error) {
             toast.error(error);
             return;
@@ -217,7 +217,7 @@ export default function DeliveryAddressModal({
                     <AddressInputField
                         title="Введите квартиру"
                         placeholder="Кваритра/офис..."
-                        value={ appartmentNumber }
+                        value={ apartmentNumber }
                         type="number"
                         onChange={ (val) => setApartment(val) }
                     />
