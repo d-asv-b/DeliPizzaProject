@@ -30,4 +30,21 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_pass http://${SERVICE_BACKEND_HOST}:${SERVICE_BACKEND_PORT};
     }
+
+    location /static/imgs/ {
+        root /var/www/images;
+
+        autoindex off;
+
+        limit_except GET HEAD {
+            deny all;
+        }
+
+        add_header Cache-Control "public, max-age=31536000" always;
+
+        location ~* \.(jpeg)$ {
+            try_files $uri = 404;
+            access_log off;
+        }
+    }
 }
