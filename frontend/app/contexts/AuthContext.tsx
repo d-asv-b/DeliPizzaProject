@@ -7,7 +7,7 @@ import { clearAuthData, getUserDataRequestPromise, initializeAuth, setAuthData }
 interface AuthContextType {
     user: UserPublicInfo | null;
     isLoading: boolean;
-    setUserData: (user: UserPublicInfo) => void
+    setUserData: (user: UserPublicInfo | null) => void
 }
 
 export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -40,11 +40,12 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         setUser(userData);
         
         if (userData) {
-             setAuthData(userData)
+            setAuthData(userData)
             localStorage.setItem("USER_DATA", JSON.stringify(userData));
         }
         else {
             clearAuthData();
+            sessionStorage.removeItem("ACCESS_TOKEN");
             localStorage.removeItem("USER_DATA");
         }
     }

@@ -11,11 +11,24 @@ import Button from "~/components/general/Button";
 import { BiLoaderCircle } from "react-icons/bi";
 import { format } from "date-fns"
 import toast from "react-hot-toast";
+import { useAuthContext } from "~/contexts/AuthContext";
 
 export default function OrderStatusPage() {
     const [ searchParams ] = useSearchParams();
 
     const navigate = useNavigate();
+
+    const { user } = useAuthContext();
+    useEffect(
+        () => {
+            if (user === null) {
+                toast.error("Вы не авторизованы!");
+                navigate("/signIn");
+                return;
+            }
+        }, [user]
+    );
+
     const orderId = searchParams.get("orderId");
     if (!orderId) {
         navigate("/");
@@ -75,13 +88,13 @@ export default function OrderStatusPage() {
             return "Заказ создан и оплачен. Передаем информацию в пиццерию.";
         }
         else if (order.status === "cooking") {
-            return `Заказ готовится. Будет в ${ order.deliveryTime }`;
+            return `Заказ готовится. Будет в ${ format(new Date(order.deliveryExpected), "HH:mm") }`;
         }
         else if (order.status === "cooked") {
             return "Заказ готов. Пиццерия передает его в службу доставки.";
         }
         else if (order.status === "delivering") {
-            return `Курьер спешит к вам с заказом. Будет в ~${ order.deliveryTime }`;
+            return `Курьер спешит к вам с заказом. Будет в ~${ format(new Date(order.deliveryExpected), "HH:mm") }`;
         }
         else if (order.status === "completed") {
             return "Заказ доставлен. Приятного аппетита.";
@@ -94,11 +107,8 @@ export default function OrderStatusPage() {
         }
     };
 
-    const deliveryAddressCoords = order.deliveryCoordinates.split(" ").map(Number) as [number, number];
-    const restaurantAddressCoords = order.restaurantCoordinates.split(" ").map(Number) as [number, number];
-
-    const deliveryAddressCoordsNormal = [ deliveryAddressCoords[1], deliveryAddressCoords[0] ]
-    const restaurantAddressCoordsNormal = [ restaurantAddressCoords[1], restaurantAddressCoords[0] ]
+    const deliveryAddressCoordsNormal = order.deliveryCoordinates.split(" ").map(Number)
+    const restaurantAddressCoordsNormal = order.restaurantCoordinates.split(" ").map(Number)
 
     return (
         <div className="h-full w-full flex justify-center items-center bg-transparent">

@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getPizzaList } from "~/api/pizza";
 import type { Pizza } from "~/models/pizza";
+import { useAuthContext } from "./AuthContext";
 
 export type pizzaListState = {
     isLoading: boolean,
@@ -13,10 +14,12 @@ export const pizzaListContext = createContext<pizzaListState>({} as pizzaListSta
 export const PizzaListProvider = ({ children }: { children: ReactNode }) => {
     const [ pizzaList, setPizzaList ] = useState([] as Pizza[]);
     const [ isLoading, setLoadingState ] = useState(true);
+    const { user } = useAuthContext();
 
     useEffect(() => {
         const fetchPizzaList = async () => {            
             try {
+                setLoadingState(true);
                 let response = await getPizzaList({});
                 setPizzaList(response);
             }
@@ -39,7 +42,7 @@ export const PizzaListProvider = ({ children }: { children: ReactNode }) => {
         }
 
         fetchPizzaList();
-    }, []);
+    }, [user]);
 
     return (
         <pizzaListContext.Provider value={ { isLoading, pizzaList } }>

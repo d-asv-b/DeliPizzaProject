@@ -31,3 +31,9 @@ export async function updateUserPassword(
 
     return response.data.userData;
 }
+
+export async function logOut() {
+    const response = await api.post(
+        "/account/log_out"
+    );
+}

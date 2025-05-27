@@ -9,7 +9,7 @@ import { AxiosError } from "axios";
 import type { UpdateUserDataRequest } from "~/models/account";
 import createSHA512Hash from "~/utils/hash";
 import Button from "../general/Button";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const fieldSettings: FieldSetting[] = [
     { title: "Имя", key: "name", label: "Введите новое имя", validate: validateName },
@@ -23,6 +23,8 @@ export default function AccountSettingsTab() {
 
     const modal = useModal();
     const close = useCloseModal();
+
+    const navigate = useNavigate();
 
     if (!user) {
         return null;
@@ -131,13 +133,9 @@ export default function AccountSettingsTab() {
 
                 <Button
                     extraClasses="mx-5 py-3 mt-3"
-                    onClick={ () => {
-                        openPasswordModal();
-                    }}
+                    onClick={() => navigate("/preferences") }
                 >
-                    <Link to={"/preferences"}>
-                        Поменять любимые тэги
-                    </Link>
+                    Поменять любимые тэги
                 </Button>
 
                 <Button

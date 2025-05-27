@@ -54,18 +54,31 @@ export default function DropdownMenu( { items, title, extraClasses = "" }: Dropd
         {isOpen && (
             <div className="absolute right-0 mt-2 w-3/4 rounded-md shadow-lg bg-input ring-1 ring-black ring-opacity-5 z-10">
                 <div>
-                    { items.map((item, idx) => (
+                    {
+                        items.length
+                        ?
+                        items.map((item, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => {
+                                    item.onClick();
+                                    setIsOpen(false);
+                                }}
+                                className="block w-full text-center px-4 py-2 text-sm text-text-input hover:text-text-main hover:bg-main hover:cursor-pointer"
+                            >
+                                {item.title}
+                            </button>
+                        ))
+                        :
                         <button
-                            key={idx}
                             onClick={() => {
-                                item.onClick();
                                 setIsOpen(false);
                             }}
                             className="block w-full text-center px-4 py-2 text-sm text-text-input hover:text-text-main hover:bg-main hover:cursor-pointer"
                         >
-                            {item.title}
+                            Ничего нет
                         </button>
-                    )) }
+                    }
                 </div>
             </div>
         )}

@@ -1,6 +1,7 @@
 import { AxiosError } from "axios";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getPaymentMethods } from "~/api/payments";
+import { useAuthContext } from "./AuthContext";
 
 
 type PaymentMethodContextType = {
@@ -12,6 +13,7 @@ export const PaymentMethodsContext = createContext<PaymentMethodContextType>({} 
 
 export const PaymentMethodsContextProvide = ({ children }: { children: ReactNode }) => {
     const [ paymentMethods, setPaymentMethods ] = useState<PaymentMethod[]>([]);
+    const { user } = useAuthContext();
 
     useEffect(() => {
         const getMethods = async () => {
@@ -39,7 +41,7 @@ export const PaymentMethodsContextProvide = ({ children }: { children: ReactNode
         getMethods().then(
             (val) => setPaymentMethods(val)
         );
-    }, []);
+    }, [user]);
 
     return (
         <PaymentMethodsContext.Provider value={ { methods: paymentMethods, setMethods: setPaymentMethods } }>

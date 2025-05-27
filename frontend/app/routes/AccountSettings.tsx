@@ -5,7 +5,9 @@ import DeliveryAdressesTab from "~/components/account/DeliveryAdressesTab";
 import PaymentMethodsTab from "~/components/account/PaymentMethodsTab";
 import OrdersHistoryTab from "~/components/account/OrdersHistoryTab";
 import Button from "~/components/general/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useAuthContext } from "~/contexts/AuthContext";
 
 const sidebarTabs = [
     {
@@ -40,6 +42,18 @@ export default function AccountSettings() {
 
     let [ activeTab, setActiveTab ] = useState(initialTabIndex);
     const navigate = useNavigate();
+
+    const { user } = useAuthContext();
+    useEffect(
+        () => {
+            if (user === null) {
+                toast.error("Вы не авторизованы!");
+                navigate("/signIn");
+                return;
+            }
+        }, [user]
+    );
+
 
     return (
         <div className="h-full w-full flex justify-center items-center bg-transparent">

@@ -15,6 +15,7 @@ urlpatterns = [
     path("account/sign_up", views.user_sign_up_view),
     path("account/sign_in", views.user_sign_in_view),
     path("account/refresh_token", views.refresh_access_token),
+    path("account/log_out", views.log_out),
 
     path("account/profile", views.get_profile_info),
     path("account/update_data", views.update_user_data),

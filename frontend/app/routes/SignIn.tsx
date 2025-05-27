@@ -78,7 +78,7 @@ export default function SignInPage() {
     }
 
     if (isLoading) {
-        return null;
+        // return null;
     }
 
     return (

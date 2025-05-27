@@ -6,6 +6,7 @@ import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { getFavouriteTags, getPizzaTags, setUserFavouriteTags } from "~/api/pizza";
 import Button from "~/components/general/Button";
+import { useAuthContext } from "~/contexts/AuthContext";
 import type { Tag } from "~/models/pizza";
 
 type TagComponentProps = {
@@ -41,6 +42,17 @@ export default function UserPizzaPreferences() {
     const navigate = useNavigate();
     const [ favouriteTags, setFavouriteTags ] = useState<Tag[]>([]);
     const [ allTags, setAllTags ] = useState<Tag[]>([]);
+
+    const { user } = useAuthContext();
+    useEffect(
+        () => {
+            if (user === null) {
+                toast.error("Вы не авторизованы!");
+                navigate("/signIn");
+                return;
+            }
+        }, [user]
+    );
 
     const [ loadingTags, setLoadingTags ] = useState<boolean>(true);
     const [ loadingFavTags, setLoadingFavTags ] = useState<boolean>(true);

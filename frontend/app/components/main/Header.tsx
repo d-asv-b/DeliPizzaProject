@@ -5,13 +5,15 @@ import { useNavigate } from "react-router";
 import ThemeSwitch from "./ThemeSwitch";
 import { useAuthContext } from "~/contexts/AuthContext";
 import { useCartTotal } from "~/hooks/useCartTotal";
+import { logOut } from "~/api/account";
+import { clearAuthData } from "~/utils/AuthService";
 
 export default function Header() {
     const [showSettings, updShowSettings] = useState(false);
     const settingsPopupRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
 
-    const { user } = useAuthContext();    
+    const { user, setUserData } = useAuthContext();    
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -36,10 +38,12 @@ export default function Header() {
             </div>
             
             <div className="flex flex-row align-middle w-full justify-end">
-                <div className="flex flex-row items-center py-2 px-4 h-full hover:bg-white/30 duration-500 cursor-pointer">
+                <div 
+                    className="flex flex-row items-center py-2 px-4 h-full hover:bg-white/30 duration-500 cursor-pointer"
+                    onClick={ () => navigate("/cart")  }
+                >
                     <div 
                         className="font-semibold"
-                        onClick={ () => navigate("/cart")  }
                     >
                         { totalCartPrice ? <span className="font-bubble-sans">{ totalCartPrice }₽</span> : "Корзина" }
                     </div>
@@ -98,7 +102,10 @@ export default function Header() {
                                         </div>
                                         <div 
                                             className="text-red-500 hover:bg-popup-hover px-4 py-1"
-                                            onClick={ () => navigate("/settings") }
+                                            onClick={ async () => {
+                                                await logOut();
+                                                setUserData(null);
+                                            } }
                                         >
                                             Выйти
                                         </div>
