@@ -107,7 +107,8 @@ class DeliveryAddressSerializer(serializers.ModelSerializer):
 
         geo_data = response.json()
         try:
-            coords = geo_data["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"]
+            lon, lat = (geo_data["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"]).split(" ")
+            coords = f"{lat} {lon}"
 
             validated_data["coordinates"] = coords
         except Exception:
@@ -165,7 +166,8 @@ class EditDeliveryAddressSerializer(serializers.ModelSerializer):
 
         geo_data = response.json()
         try:
-            coords = geo_data["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"]
+            lon, lat = (geo_data["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"]).split(" ")
+            coords = f"{lat} {lon}"
 
             validated_data["coordinates"] = coords
         except Exception:

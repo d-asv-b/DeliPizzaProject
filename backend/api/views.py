@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 from backend import settings
@@ -293,6 +293,27 @@ def refresh_access_token(request: Request):
     )
 
     return response
+
+@api_view([ "POST" ])
+def log_out(request: Request):
+    refresh_token_cookie = request.COOKIES.get("REFRESH_TOKEN", "")
+
+    response = Response(
+        status=status.HTTP_200_OK
+    )
+    response.delete_cookie("REFRESH_TOKEN")
+
+    if len(refresh_token_cookie) == 0:
+        return response
+    
+    try:
+        refresh_token = RefreshToken(refresh_token_cookie)
+    except Exception as err:
+        return response
+
+    refresh_token.blacklist()
+
+    return response      
 
 @api_view([ "GET" ])
 @access_token_required
@@ -754,6 +775,7 @@ def place_new_order(request: Request):
             status=status.HTTP_400_BAD_REQUEST
         )
     except Exception as e:
+        print(e)
         return Response(
             {"error": "Error on server. Please try again later"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
