@@ -1,6 +1,7 @@
 import { AxiosError } from "axios";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getUserOrders } from "~/api/orders";
+import { useAuthContext } from "./AuthContext";
 
 type OrdersContextType = {
     orders: OrderHistoryItem[];
@@ -11,6 +12,7 @@ export const OrdersContext = createContext<OrdersContextType>({} as OrdersContex
 
 export const OrdersContextProvider = ({ children }: { children: ReactNode }) => {
     const [ orders, setOrders ] = useState<OrderHistoryItem[]>([]);
+    const { user } = useAuthContext();
 
     useEffect(
         () => {
@@ -40,7 +42,7 @@ export const OrdersContextProvider = ({ children }: { children: ReactNode }) => 
             .then(
                 val => setOrders(val)
             );
-        }, []
+        }, [user]
     );
 
     return (

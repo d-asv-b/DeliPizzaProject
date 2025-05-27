@@ -36,7 +36,9 @@ export default function AccountSettingsTab() {
 
     return (
         <div className="flex flex-col h-full p-5 gap-2 overflow-y-auto">
-            {
+            { 
+                orders.length 
+                ?
                 orders.map(
                     (order) => (
                         <div className="flex flex-row border-2 border-gray-500 rounded-xl py-5 p-2">
@@ -117,6 +119,8 @@ export default function AccountSettingsTab() {
                         </div>
                     )
                 )
+                :
+                <div className="text-xl grow text-center place-content-center">Вы еще ничего не заказывали</div>
             }
         </div>
     )

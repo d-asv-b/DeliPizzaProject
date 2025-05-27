@@ -26,7 +26,7 @@ interface OrderStatus {
     id: string;
     orderPositions: string[];
     status: 'created' | 'paid' | 'cooking' | 'cooked' | 'delivering' | 'completed' | 'cancelled';
-    deliveryTime: string;
+    deliveryExpected: string;
     creationDate: string;
     deliveryCoordinates: string;
     restaurantCoordinates: string;

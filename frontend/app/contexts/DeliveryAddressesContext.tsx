@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getUserDeliveryAddresses } from "~/api/addresses";
 import type { DeliveryAddress } from "~/models/addresses";
+import { useAuthContext } from "./AuthContext";
 
 type DeliveryAddressesContextType = {
     addresses: DeliveryAddress[];
@@ -12,6 +13,7 @@ export const DeliveryAddressesContext = createContext<DeliveryAddressesContextTy
 
 export const DeliveryAddressContextProvider = ({ children }: {children : ReactNode}) => {
     const [ deliveryAddresses, setDeliveryAddresses ] = useState<DeliveryAddress[]>([]);
+    const { user } = useAuthContext();
 
     useEffect(() => {
         const getDeliveryAddresses = async () => {
@@ -39,7 +41,7 @@ export const DeliveryAddressContextProvider = ({ children }: {children : ReactNo
         getDeliveryAddresses().then(
             addresses => setDeliveryAddresses(addresses)
         );
-    }, []);
+    }, [user]);
 
     return (
         <DeliveryAddressesContext.Provider value={{ addresses: deliveryAddresses, setAddresses: setDeliveryAddresses }}>

@@ -60,7 +60,7 @@ export default function Cart() {
 
     function addressToString(address: DeliveryAddress | undefined) {
         if (address) {
-            return `ул. ${address.street}, д. ${address.buildingNumber}, кв./оф. ${address.appartmentNumber}`;
+            return `ул. ${address.street}, д. ${address.buildingNumber}, кв./оф. ${address.apartmentNumber}`;
         }
 
         return "";
@@ -106,6 +106,7 @@ export default function Cart() {
             );
 
             setOrderPlaced(true);
+            clearCart();
             toast.success("Заказ создан! Перенаправляем на страницу заказа...");
             setTimeout(
                 () => {
@@ -130,7 +131,7 @@ export default function Cart() {
 
     return (
         <div className="h-full w-full flex justify-center items-center bg-transparent">
-            <div className="flex flex-col h-full w-full rounded-none xl:h-5/6 xl:w-5/6 2xl:w-3/4 3xl:w-2/3 xl:rounded-2xl bg-secondary text-text-secondary">
+            <div className="flex flex-col h-full w-full rounded-none xl:h-5/6 xl:w-5/6 2xl:w-3/4 3xl:w-2/3 xl:rounded-2xl bg-secondary text-text-secondary overflow-y-auto">
                 <div className="flex flex-row p-5">
                     <Button
                         onClick={ () => navigate("/") }

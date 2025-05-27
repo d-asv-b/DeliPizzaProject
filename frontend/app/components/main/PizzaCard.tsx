@@ -11,23 +11,23 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
     const { addItem } = useCartContext();
 
     return (
-        <div className="flex flex-row rounded-xl p-5 min-h sm:min-h-55 bg-secondary text-text-secondary">
-            <div className="p-5 items-center">
+        <div className="flex flex-row rounded-xl h-70 bg-secondary text-text-secondary">
+            <div className="w-[260px] aspect-square overflow-hidden">
                 <img
-                    className="min-w-20 min-h-20" 
+                    className="h-full rounded-l-xl object-cover object-left" 
                     src={pizza.iconUrl.length != 0 ? pizza.iconUrl : undefined}
                 ></img>
             </div>
-            <div className="flex flex-col flex-grow">
+            <div className="flex flex-col w-10/11 p-5">
                 <div className="text-xl font-bold">
                     {pizza.name}
                 </div>
 
-                <div className="line-clamp-3 text-ellipsis py-0.5 min-h-15">
+                <div className="line-clamp-3 grow text-ellipsis py-0.5 min-h-15">
                     {pizza.shortDescription}
                 </div>
 
-                <div className="flex flex-row gap-1 p-1">
+                <div className="flex flex-row flex-wrap gap-1 p-1">
                     { 
                         pizza.tags.map(
                             tag => (
