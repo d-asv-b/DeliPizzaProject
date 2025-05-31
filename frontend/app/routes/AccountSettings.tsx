@@ -66,7 +66,7 @@ export default function AccountSettings() {
                             На главную
                         </Button>
                     </div>
-                    <div className="flex flex-row lg:flex-col text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl my-5 lg:pl-8 lg:border-r-1 border-gray-300">
+                    <div className="flex flex-row overflow-x-auto lg:flex-col text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl my-5 lg:pl-8 lg:border-r-1 border-gray-300">
                         {
                             sidebarTabs.map((tab, idx) => (
                                 <Link

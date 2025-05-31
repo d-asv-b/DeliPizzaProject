@@ -33,6 +33,7 @@ services:
         volumes:
             - ./nginx/ssl-setup.conf:/etc/nginx/conf.d/ssl-setup.conf
             - ./nginx/nginx.conf.template:/etc/nginx/templates/nginx.conf.template
+            - ./nginx/images:/var/www/static/imgs/
             - /etc/certs:/etc/letsencrypt
             - ./certbot/www:/var/www/certbot
     certbot:

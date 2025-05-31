@@ -1,5 +1,6 @@
 .vscode
 
+/frontend/public/images
 /frontend/node_modules
 /frontend/.react-router
 /frontend/build

@@ -11,14 +11,14 @@ export default function PizzaCard({ pizza }: {pizza: Pizza}) {
     const { addItem } = useCartContext();
 
     return (
-        <div className="flex flex-row rounded-xl h-70 bg-secondary text-text-secondary">
-            <div className="w-[260px] aspect-square overflow-hidden">
+        <div className="flex flex-col sm:flex-row rounded-xl h-100 sm:h-70 bg-secondary text-text-secondary">
+            <div className="grow sm:grow-0 sm:w-[260px] aspect-square overflow-hidden">
                 <img
-                    className="h-full rounded-l-xl object-cover object-left" 
+                    className="h-full w-full rounded-t-xl sm:rounded-l-xl object-cover object-left" 
                     src={pizza.iconUrl.length != 0 ? pizza.iconUrl : undefined}
                 ></img>
             </div>
-            <div className="flex flex-col w-10/11 p-5">
+            <div className="flex flex-col w-full sm:w-10/11 p-5">
                 <div className="text-xl font-bold">
                     {pizza.name}
                 </div>

@@ -115,7 +115,7 @@ export default function UserPizzaPreferences() {
 
     return (
         <div className="h-full w-full flex justify-center items-center bg-transparent">
-            <div className="flex flex-col h-full w-full rounded-none xl:h-5/6 xl:w-5/6 2xl:w-3/4 3xl:w-2/3 xl:rounded-2xl bg-secondary text-text-secondary">
+            <div className="flex flex-col h-full w-full overflow-y-auto rounded-none xl:h-5/6 xl:w-5/6 2xl:w-3/4 3xl:w-2/3 xl:rounded-2xl bg-secondary text-text-secondary">
                 <div className="flex flex-row p-5">
                     <Button
                         onClick={ () => navigate("/") }
@@ -160,13 +160,14 @@ export default function UserPizzaPreferences() {
                         </div>
                     </div>
 
-                    <div className="flex flex-row place-content-center gap-5 mb-5">
+                    <div className="flex flex-col sm:flex-row place-content-center gap-1 sm:gap-5 mb-5 mt-5">
                         <Button
                             extraClasses="py-3 px-15 text-xl font-semibold"
                             onClick={ async () => {
                                 try {
                                     const result = await setUserFavouriteTags({ tag_ids: favouriteTags.map(tag => tag.id) });
                                     setFavouriteTags(result);
+                                    toast.success("Ваши любимые теги успешно сохранены!");
                                 }
                                 catch (error) {
                                     if (error instanceof AxiosError && error.response) {

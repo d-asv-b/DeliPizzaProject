@@ -145,8 +145,8 @@ export default function Cart() {
                             <div className="font-semibold text-2xl">
                                 Детали доставки:
                             </div>
-                            <div className="flex flex-col gap-2 mt-2 items-center">
-                                <div>
+                            <div className="flex flex-col gap-2 items-center">
+                                <div className="flex flex-col">
                                     <div className="text-lg">
                                         Адрес доставки:
                                     </div>
@@ -166,12 +166,12 @@ export default function Cart() {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col w-md max-w-md">
+                                <div className="flex flex-col">
                                     <div className="text-lg">
                                         Время доставки:
                                     </div>
                                     <div className="flex flex-col grow">
-                                        <div className="flex flex-row items-center gap-5 justify-center">
+                                        <div className="flex flex-col md:flex-row items-center gap-5 justify-center">
                                             <div className="text-xl font-semibold">
                                                 { deliveryDate === "today" ? "Сегодня" : "Завтра" }, в { deliveryTime }
                                             </div>
