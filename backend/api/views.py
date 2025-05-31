@@ -35,7 +35,7 @@ class PizzaListViewSet(APIView):
     def get(self, request: Request):
         try:
             start = int(request.query_params.get("start", 0))
-            amount = int(request.query_params.get("amount", 24))
+            amount = int(request.query_params.get("amount", 100))
 
             if start < 0 or amount < 0 or start > 1000 or amount > 1000:
                 raise ValueError
@@ -837,6 +837,8 @@ def set_user_preferences(request: Request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
+    FavouriteTag.objects.filter(user=request.user).exclude(tag_id__in=tag_ids).delete()
+
     existing_tag_ids = set(
         FavouriteTag.objects.filter(
             user=request.user,

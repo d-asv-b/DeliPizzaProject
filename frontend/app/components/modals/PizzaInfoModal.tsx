@@ -39,7 +39,7 @@ export default function PizzaInfoModal({ pizzaData, onClose, onSave }: PizzaModa
             <div className="flex flex-col">
                 <div className="flex flex-col items-center lg:flex-row gap-10">
                     <div className="flex flex-grow h-full">
-                        <img src={ pizzaData.iconUrl } className="w-xl lg:w-sm h-full"/>
+                        <img src={ pizzaData.iconUrl } className="aspect-square"/>
                     </div>
                     <div className="flex flex-col text-text-secondary max-w-5xl w-full break-words gap-2">
                         <div className="font-bold text-2xl">
